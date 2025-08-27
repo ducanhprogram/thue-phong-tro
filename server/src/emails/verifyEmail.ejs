@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Xác thực địa chỉ email</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, "Helvetica Neue", Arial, sans-serif;
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                min-height: 100vh;
+                padding: 20px;
+                line-height: 1.6;
+            }
+
+            .email-wrapper {
+                max-width: 600px;
+                margin: 0 auto;
+                background: #ffffff;
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            .header {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                padding: 40px 30px;
+                text-align: center;
+                color: white;
+                position: relative;
+            }
+
+            .header::after {
+                content: "";
+                position: absolute;
+                bottom: -10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0;
+                height: 0;
+                border-left: 20px solid transparent;
+                border-right: 20px solid transparent;
+                border-top: 20px solid #00f2fe;
+            }
+
+            .header-icon {
+                width: 80px;
+                height: 80px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+                font-size: 36px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 8px;
+            }
+
+            .header p {
+                font-size: 16px;
+                opacity: 0.9;
+            }
+
+            .content {
+                padding: 50px 30px 40px;
+            }
+
+            .welcome-badge {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+
+            .greeting {
+                font-size: 24px;
+                font-weight: 600;
+                color: #2d3748;
+                margin-bottom: 20px;
+            }
+
+            .message {
+                font-size: 16px;
+                color: #4a5568;
+                margin-bottom: 20px;
+                line-height: 1.7;
+            }
+
+            .highlight-box {
+                background: linear-gradient(135deg, #e6f3ff 0%, #f0f9ff 100%);
+                border-left: 4px solid #4facfe;
+                padding: 20px;
+                margin: 25px 0;
+                border-radius: 0 12px 12px 0;
+            }
+
+            .highlight-box p {
+                color: #1e40af;
+                font-size: 16px;
+                font-weight: 500;
+                margin: 0;
+            }
+
+            .verify-button {
+                display: inline-block;
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: #ffffff !important;
+                text-decoration: none;
+                padding: 18px 36px;
+                border-radius: 12px;
+                font-size: 16px;
+                font-weight: 600;
+                margin: 25px 0;
+                transition: all 0.3s ease;
+                box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .verify-button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+            }
+
+            .alternative-link {
+                background: #f8fafc;
+                border: 2px dashed #cbd5e0;
+                border-radius: 12px;
+                padding: 25px;
+                margin: 25px 0;
+                text-align: center;
+            }
+
+            .alternative-link p {
+                font-size: 14px;
+                color: #718096;
+                margin-bottom: 15px;
+                font-weight: 500;
+            }
+
+            .link-text {
+                font-size: 13px;
+                color: #4facfe;
+                word-break: break-all;
+                background: #ffffff;
+                padding: 12px;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                font-family: "Monaco", "Courier New", monospace;
+            }
+
+            .expiry-notice {
+                background: linear-gradient(135deg, #fef5e7 0%, #fff8e1 100%);
+                border: 1px solid #f6ad55;
+                padding: 20px;
+                margin: 25px 0;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .expiry-icon {
+                font-size: 24px;
+                color: #ed8936;
+            }
+
+            .expiry-notice p {
+                color: #c05621;
+                font-size: 14px;
+                font-weight: 500;
+                margin: 0;
+            }
+
+            .steps {
+                background: #f7fafc;
+                border-radius: 12px;
+                padding: 25px;
+                margin: 25px 0;
+            }
+
+            .steps h3 {
+                color: #2d3748;
+                font-size: 18px;
+                margin-bottom: 15px;
+                font-weight: 600;
+            }
+
+            .step {
+                display: flex;
+                align-items: flex-start;
+                gap: 15px;
+                margin-bottom: 15px;
+                padding: 10px 0;
+            }
+
+            .step-number {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                font-weight: 600;
+                flex-shrink: 0;
+            }
+
+            .step-content {
+                color: #4a5568;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .footer {
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                padding: 30px;
+                text-align: center;
+                border-top: 1px solid #e2e8f0;
+            }
+
+            .footer p {
+                font-size: 14px;
+                color: #718096;
+                line-height: 1.6;
+                margin-bottom: 10px;
+            }
+
+            .footer-links {
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid #e2e8f0;
+            }
+
+            .footer-links a {
+                color: #4facfe;
+                text-decoration: none;
+                margin: 0 15px;
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            @media (max-width: 600px) {
+                body {
+                    padding: 10px;
+                }
+
+                .header {
+                    padding: 30px 20px;
+                }
+
+                .header h1 {
+                    font-size: 24px;
+                }
+
+                .content {
+                    padding: 40px 20px 30px;
+                }
+
+                .greeting {
+                    font-size: 20px;
+                }
+
+                .message {
+                    font-size: 15px;
+                }
+
+                .verify-button {
+                    display: block;
+                    text-align: center;
+                    padding: 16px 24px;
+                    margin: 20px 0;
+                }
+
+                .step {
+                    flex-direction: column;
+                    text-align: center;
+                    gap: 10px;
+                }
+
+                .step-number {
+                    align-self: center;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="email-wrapper">
+            <div class="header">
+                <div class="header-icon">📧</div>
+                <h1>Xác thực Email</h1>
+                <p>Chỉ còn một bước nữa để hoàn tất đăng ký</p>
+            </div>
+
+            <div class="content">
+                <div class="welcome-badge">Chào mừng bạn</div>
+
+                <div class="greeting">Xin chào <%= name %>! 🎉</div>
+
+                <p class="message">
+                    Cảm ơn bạn đã đăng ký tài khoản với chúng tôi! Để đảm bảo
+                    tính bảo mật và có thể sử dụng đầy đủ các tính năng, vui
+                    lòng xác thực địa chỉ email của bạn.
+                </p>
+
+                <div class="highlight-box">
+                    <p>
+                        ✨ Việc xác thực email sẽ giúp bạn bảo vệ tài khoản và
+                        nhận được các thông báo quan trọng.
+                    </p>
+                </div>
+
+                <div style="text-align: center">
+                    <a href="<%= verifyUrl %>" class="verify-button">
+                        🚀 Xác thực email ngay
+                    </a>
+                </div>
+
+                <div class="steps">
+                    <h3>📋 Hướng dẫn nhanh:</h3>
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            Nhấn vào nút "Xác thực email ngay" ở trên
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            Bạn sẽ được chuyển đến trang xác nhận
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            Email của bạn sẽ được kích hoạt và sẵn sàng sử dụng!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alternative-link">
+                    <p><strong>🔧 Nút không hoạt động?</strong></p>
+                    <p>Sao chép và dán liên kết sau vào trình duyệt:</p>
+                    <div class="link-text"><%= verifyUrl %></div>
+                </div>
+
+                <div class="expiry-notice">
+                    <div class="expiry-icon">⏰</div>
+                    <p>
+                        <strong>Lưu ý quan trọng:</strong> Liên kết xác thực này
+                        sẽ hết hạn sau
+                        <strong><%= Math.floor(expiresIn / 60) %> phút</strong>
+                        để đảm bảo bảo mật.
+                        <p style="font-size: 13px; color: #718096;">
+                        📅 Gửi lúc: <%= new Date().toLocaleString('vi-VN', {
+                            timeZone: 'Asia/Ho_Chi_Minh',
+                            day: '2-digit',
+                            month: '2-digit', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) %>
+                    </p>
+                    </p>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>
+                    <strong>🤔 Bạn không thực hiện hành động này?</strong><br />
+                    Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email
+                    này. Tài khoản sẽ không được kích hoạt nếu không xác thực.
+                </p>
+
+                <p style="margin-top: 20px; font-size: 13px; opacity: 0.7">
+                    Email này được gửi tự động từ hệ thống. Vui lòng không trả
+                    lời email này.
+                </p>
+
+                <div class="footer-links">
+                    <a href="#">Chính sách bảo mật</a>
+                    <a href="#">Điều khoản sử dụng</a>
+                    <a href="#">Liên hệ hỗ trợ</a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
