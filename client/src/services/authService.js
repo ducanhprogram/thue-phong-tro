@@ -84,6 +84,7 @@ export const logout = async () => {
         // Xóa token khỏi localStorage
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
+        localStorage.removeItem("persist:auth");
         return response;
     } catch (error) {
         throw new Error(error.message || "Đăng xuất thất bại");

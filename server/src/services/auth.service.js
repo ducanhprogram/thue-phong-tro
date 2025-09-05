@@ -68,10 +68,11 @@ class AuthService {
             });
 
             if (!user) {
-                const error = new Error("Email hoặc mật khẩu không đúng!");
-                error.statusCode = 401;
+                const error = new Error("Email chưa được đăng ký.");
+                error.statusCode = 404;
                 throw error;
             }
+
             if (!user.email_verified) {
                 const error = new Error(
                     "Tài khoản chưa được xác minh. Vui lòng kiểm tra email hoặc gửi lại email xác minh"

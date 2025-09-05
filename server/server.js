@@ -6,8 +6,6 @@ const cors = require("cors");
 const router = require("@/routes");
 const { sequelize } = require("@/models");
 
-// const generateCode = require("@/utils/generateCode");
-
 const handlerNotFound = require("@/middlewares/errors/handleNotFound");
 const responseEnhancer = require("@/middlewares/responseEnhancer");
 const handleErrors = require("@/middlewares/errors/handleErrors");

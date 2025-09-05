@@ -9,10 +9,19 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             // define association here
+            Attribute.hasOne(models.Post, {
+                foreignKey: "attributesId",
+                as: "posts",
+            });
         }
     }
     Attribute.init(
         {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+            },
             price: DataTypes.STRING,
             acreage: DataTypes.STRING,
             published: DataTypes.STRING,

@@ -10,6 +10,11 @@ module.exports = {
                 type: Sequelize.INTEGER,
                 autoIncrement: true,
             },
+            slug: {
+                type: Sequelize.STRING,
+                allowNull: false,
+                unique: true,
+            },
             code: {
                 type: Sequelize.STRING,
             },

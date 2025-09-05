@@ -1,0 +1,36 @@
+.container_navigation {
+    max-width: 1072px;
+    // display: flex;
+    // align-items: center;
+    // justify-content: center;
+}
+
+.navigation {
+    height: 100%;
+    .link {
+        height: 100%;
+        align-items: center;
+        display: flex;
+    }
+
+    a {
+        border-bottom: 2px solid transparent;
+        display: flex;
+        align-items: center;
+        height: 100%;
+        font-size: 16px;
+
+        &:hover {
+            color: #FF5723;
+        }
+
+        &.isActive {
+            color: #FF5723;
+            border-bottom-color: #FF5723;
+
+            &:hover {
+                color: #FF3300;
+            }
+        }
+    }
+}

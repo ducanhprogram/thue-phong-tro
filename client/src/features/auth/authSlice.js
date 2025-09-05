@@ -20,7 +20,12 @@ export const registerUser = createAsyncThunk(
             const response = await register(name, email, password);
             return response;
         } catch (error) {
-            return rejectWithValue(error);
+            // Truyền đầy đủ thông tin error bao gồm cả errors array
+            return rejectWithValue({
+                message: error.message,
+                statusCode: error.statusCode || 500,
+                errors: error.errors || error.response?.data?.errors, // Thêm errors
+            });
         }
     },
 );
@@ -32,7 +37,12 @@ export const loginUser = createAsyncThunk("auth/login", async ({ email, password
         return response.data;
     } catch (error) {
         console.log("Error in login thunk:", error);
-        return rejectWithValue(error);
+        // Truyền đầy đủ thông tin error bao gồm cả errors array
+        return rejectWithValue({
+            message: error.message,
+            statusCode: error.statusCode || 500,
+            errors: error.errors || error.response?.data?.errors, // Thêm errors
+        });
     }
 });
 
@@ -43,18 +53,26 @@ export const verifyUserEmail = createAsyncThunk("auth/verifyEmail", async (token
         return response;
     } catch (error) {
         console.log("Error in verify email thunk:", error);
-        return rejectWithValue(error);
+        return rejectWithValue({
+            message: error.message,
+            statusCode: error.statusCode || 500,
+            errors: error.errors || error.response?.data?.errors, // Thêm errors
+        });
     }
 });
 
-// Async thunk để gửi lại email xác thực (đổi tên để tránh xung đột)
+// Async thunk để gửi lại email xác thực
 export const resendVerifyUserEmail = createAsyncThunk("auth/resendVerifyEmail", async (email, { rejectWithValue }) => {
     try {
         const response = await resendVerifyEmail(email);
         return response;
     } catch (error) {
         console.log("Error in resend verify email thunk:", error);
-        return rejectWithValue(error);
+        return rejectWithValue({
+            message: error.message,
+            statusCode: error.statusCode || 500,
+            errors: error.errors || error.response?.data?.errors, // Thêm errors
+        });
     }
 });
 
@@ -67,7 +85,11 @@ export const resetUserPassword = createAsyncThunk(
             return response;
         } catch (error) {
             console.log("Error in reset password thunk:", error);
-            return rejectWithValue(error);
+            return rejectWithValue({
+                message: error.message,
+                statusCode: error.statusCode || 500,
+                errors: error.errors || error.response?.data?.errors, // Thêm errors
+            });
         }
     },
 );
@@ -95,6 +117,14 @@ const authSlice = createSlice({
             state.isAuthenticated = true;
             state.isLoggedIn = true;
         },
+        clearAllData: (state) => {
+            // Reset về initial state
+            Object.assign(state, initialState);
+            // Xóa localStorage
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("persist:auth"); // Xóa Redux Persist data
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -108,7 +138,7 @@ const authSlice = createSlice({
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error = action.payload; // Bây giờ bao gồm cả errors array
             })
 
             // Login cases
@@ -126,7 +156,7 @@ const authSlice = createSlice({
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error = action.payload; // Bây giờ bao gồm cả errors array
             })
 
             // Verify email cases
@@ -142,7 +172,7 @@ const authSlice = createSlice({
                 state.error = action.payload;
             })
 
-            // Resend verify email cases (cập nhật tên)
+            // Resend verify email cases
             .addCase(resendVerifyUserEmail.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -175,5 +205,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { clearError, logout, setCredentials } = authSlice.actions;
+export const { clearError, logout, setCredentials, clearAllData } = authSlice.actions;
 export default authSlice.reducer;

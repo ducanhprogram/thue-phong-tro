@@ -3,24 +3,22 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
     async up(queryInterface, Sequelize) {
-        /**
-         * Add altering commands here.
-         *
-         * Example:
-         * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-         */
-        await queryInterface.createTable("labels", {
+        await queryInterface.createTable("Labels", {
+            // ✅ Tên bảng phải khớp với model
             id: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 primaryKey: true,
                 autoIncrement: true,
             },
             code: {
                 type: Sequelize.STRING,
+                allowNull: false,
+                unique: true,
             },
             value: {
                 type: Sequelize.STRING,
+                allowNull: false,
             },
             createdAt: {
                 allowNull: false,
@@ -36,12 +34,6 @@ module.exports = {
     },
 
     async down(queryInterface, Sequelize) {
-        /**
-         * Add reverting commands here.
-         *
-         * Example:
-         * await queryInterface.dropTable('users');
-         */
-        await queryInterface.dropTable("labels");
+        await queryInterface.dropTable("Labels");
     },
 };

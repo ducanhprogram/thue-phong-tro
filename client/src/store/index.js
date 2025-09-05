@@ -3,6 +3,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authReducer from "@/features/auth/authSlice";
+import postReducer from "@/features/posts/postSlice";
+import appReducer from "@/features/app/appSlice";
 
 const persistConfig = {
     key: "auth", // Đổi key để tránh conflict
@@ -15,6 +17,8 @@ const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 export const store = configureStore({
     reducer: {
         auth: persistedAuthReducer,
+        posts: postReducer,
+        app: appReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

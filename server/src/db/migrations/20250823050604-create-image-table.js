@@ -3,17 +3,16 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
     async up(queryInterface, Sequelize) {
-        await queryInterface.createTable("images", {
+        await queryInterface.createTable("Images", {
             id: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 primaryKey: true,
                 autoIncrement: true,
             },
             image: {
-                type: Sequelize.STRING,
+                type: Sequelize.TEXT, // JSON string của array images
             },
-
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
@@ -28,12 +27,6 @@ module.exports = {
     },
 
     async down(queryInterface, Sequelize) {
-        /**
-         * Add reverting commands here.
-         *
-         * Example:
-         * await queryInterface.dropTable('users');
-         */
-        await queryInterface.dropTable("images");
+        await queryInterface.dropTable("Images");
     },
 };

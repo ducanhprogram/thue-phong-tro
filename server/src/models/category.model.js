@@ -13,10 +13,16 @@ module.exports = (sequelize, DataTypes) => {
     }
     Category.init(
         {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+            },
             code: DataTypes.STRING,
             value: DataTypes.STRING,
             header: DataTypes.STRING,
             subheader: DataTypes.STRING,
+            slug: DataTypes.STRING,
         },
         {
             sequelize,

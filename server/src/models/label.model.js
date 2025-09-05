@@ -13,11 +13,18 @@ module.exports = (sequelize, DataTypes) => {
     }
     Label.init(
         {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+                allowNull: false,
+            },
             code: DataTypes.STRING,
             value: DataTypes.STRING,
         },
         {
             sequelize,
+            tableName: "Labels",
             modelName: "Label",
             timestamps: true,
             // underscored: true,

@@ -2,7 +2,7 @@ const insertService = require("@/services/insert.service");
 
 exports.insert = async (req, res) => {
     try {
-        const response = await insertService.insert(req.body);
+        const response = await insertService.createPricesAndAreas();
         return res.status(200).json(response);
     } catch (error) {
         return res.status(500).json({

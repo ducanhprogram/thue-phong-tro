@@ -47,6 +47,8 @@ httpRequest.interceptors.response.use(
 
             const refreshToken = localStorage.getItem("refreshToken");
             if (!refreshToken) {
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
                 return Promise.reject(error);
             }
 

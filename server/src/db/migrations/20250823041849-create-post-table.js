@@ -1,14 +1,15 @@
+// POST TABLE MIGRATION
 "use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
     async up(queryInterface, Sequelize) {
-        await queryInterface.createTable("posts", {
+        await queryInterface.createTable("Posts", {
             id: {
+                type: Sequelize.INTEGER, // ✅ Chỉ định rõ độ dài 36
                 allowNull: false,
                 primaryKey: true,
                 autoIncrement: true,
-                type: Sequelize.INTEGER,
             },
             title: {
                 type: Sequelize.STRING,
@@ -24,22 +25,50 @@ module.exports = {
                 type: Sequelize.STRING,
             },
             attributesId: {
+                type: Sequelize.STRING(36), // ✅ Sửa từ TEXT thành STRING(36)
+            },
+            priceCode: {
+                type: Sequelize.STRING,
+            },
+            areaCode: {
                 type: Sequelize.STRING,
             },
             categoryCode: {
                 type: Sequelize.STRING,
             },
             description: {
-                type: Sequelize.STRING,
+                type: Sequelize.TEXT,
             },
             userId: {
-                type: Sequelize.STRING,
+                type: Sequelize.INTEGER.UNSIGNED,
+                allowNull: false,
+                references: {
+                    model: "users",
+                    key: "id",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "CASCADE",
             },
             overviewId: {
-                type: Sequelize.STRING,
+                type: Sequelize.STRING(36), // ✅ Chỉ định độ dài cho UUID
             },
-            imageId: {
-                type: Sequelize.STRING,
+            imagesId: {
+                type: Sequelize.STRING(36), // ✅ Chỉ định độ dài cho UUID
+            },
+            areaCode: {
+                type: Sequelize.STRING, // ✅ Thêm cột bị thiếu
+            },
+            priceCode: {
+                type: Sequelize.STRING, // ✅ Thêm cột bị thiếu
+            },
+            provinceCode: {
+                type: Sequelize.STRING, // ✅ Thêm cột bị thiếu
+            },
+            priceNumber: {
+                type: Sequelize.FLOAT, // ✅ Thêm cột bị thiếu
+            },
+            areaNumber: {
+                type: Sequelize.FLOAT, // ✅ Thêm cột bị thiếu
             },
             createdAt: {
                 allowNull: false,
@@ -55,12 +84,6 @@ module.exports = {
     },
 
     async down(queryInterface, Sequelize) {
-        /**
-         * Add reverting commands here.
-         *
-         * Example:
-         * await queryInterface.dropTable('users');
-         */
-        await queryInterface.dropTable("posts");
+        await queryInterface.dropTable("Posts");
     },
 };

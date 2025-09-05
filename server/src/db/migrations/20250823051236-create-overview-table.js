@@ -3,10 +3,10 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
     async up(queryInterface, Sequelize) {
-        await queryInterface.createTable("overviews", {
+        await queryInterface.createTable("Overviews", {
             id: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 primaryKey: true,
                 autoIncrement: true,
             },
@@ -16,30 +16,21 @@ module.exports = {
             area: {
                 type: Sequelize.STRING,
             },
-
             type: {
                 type: Sequelize.STRING,
             },
-
             target: {
                 type: Sequelize.STRING,
             },
-
             bonus: {
                 type: Sequelize.STRING,
             },
-
             created: {
-                type: Sequelize.DATE,
-                allowNull: false,
-                defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+                type: Sequelize.STRING,
             },
-            expiredAt: {
-                type: Sequelize.DATE,
-                allowNull: false,
-                defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+            expired: {
+                type: Sequelize.STRING,
             },
-
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
@@ -54,12 +45,6 @@ module.exports = {
     },
 
     async down(queryInterface, Sequelize) {
-        /**
-         * Add reverting commands here.
-         *
-         * Example:
-         * await queryInterface.dropTable('users');
-         */
-        await queryInterface.dropTable("overviews");
+        await queryInterface.dropTable("Overviews");
     },
 };

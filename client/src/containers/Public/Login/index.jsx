@@ -75,12 +75,7 @@ const Login = () => {
             setShowResendVerification(false);
         } catch (err) {
             // Kiểm tra lỗi email chưa xác thực
-            if (
-                (err?.message && err.message.includes("email chưa được xác thực")) ||
-                (err?.message && err.message.includes("email not verified")) ||
-                (err?.message && err.message.includes("Please verify your email")) ||
-                (err?.message && err.message.includes("Tài khoản chưa được xác minh"))
-            ) {
+            if (err?.statusCode === 403 && err?.message?.includes("Tài khoản chưa được xác minh")) {
                 setUnverifiedEmail(email);
                 showError("Email của bạn chưa được xác thực. Vui lòng kiểm tra email hoặc gửi lại email xác thực.");
                 setShowResendVerification(true);

@@ -3,7 +3,7 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 import AppRoutes from "./components/AppRoutes";
 function App() {
     return (
-        <div className="h-screen w-screen bg-primary">
+        <div className="h-screen  bg-primary">
             <BrowserRouter>
                 <AppRoutes />
             </BrowserRouter>

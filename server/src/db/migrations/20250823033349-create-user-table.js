@@ -34,6 +34,12 @@ module.exports = {
                 allowNull: true,
                 defaultValue: null,
             },
+            facebook_url: {
+                type: Sequelize.STRING,
+            },
+            avatar: {
+                type: Sequelize.BLOB("long"),
+            },
             zalo: {
                 type: Sequelize.STRING,
             },

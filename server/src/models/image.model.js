@@ -9,11 +9,22 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             // define association here
+            Image.hasOne(models.Post, {
+                foreignKey: "imagesId",
+                as: "posts",
+            });
         }
     }
     Image.init(
         {
-            image: DataTypes.STRING,
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+            },
+            image: {
+                type: DataTypes.TEXT,
+            },
         },
         {
             sequelize,

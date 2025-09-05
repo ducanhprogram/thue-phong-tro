@@ -18,8 +18,6 @@ const Header = () => {
 
     // Lấy thông tin từ Redux store
     const { user, isAuthenticated, isLoggedIn } = useSelector((state) => state.auth);
-
-    console.log("isAuthenticated", isAuthenticated);
     const goLogin = useCallback(() => {
         navigate(path.LOGIN);
     }, [navigate]);
@@ -51,7 +49,7 @@ const Header = () => {
 
     return (
         <div className="w-full bg-white mb-3">
-            <div className={`max-w-[1100px] mx-auto flex items-center justify-between ${styles.border_bottom}`}>
+            <div className={`mx-auto flex items-center justify-between ${(styles.border_bottom, styles.header)}`}>
                 <Link to={"/"}>
                     <img
                         src="https://phongtro123.com/images/logo-phongtro.svg"
