@@ -64,7 +64,7 @@ const Search = () => {
                     Tìm kiếm
                 </button>
             </div>
-
+            <button></button>
             {/* Chỉ hiển thị Modal khi isShowModal = true */}
             {isShowModal && <Modal content={content} name={name} onClose={handleCloseModal} />}
         </>
