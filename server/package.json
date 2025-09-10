@@ -1,0 +1,47 @@
+{
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "method-override": "^3.0.0",
+    "module-alias": "^2.2.3",
+    "mysql2": "^3.14.3",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.5",
+    "nodemon": "^3.1.10",
+    "sequelize": "^6.37.7",
+    "uuid": "^11.1.0"
+  },
+  "_moduleAliases": {
+    "@": "./src"
+  },
+  "scripts": {
+    "start": "nodemon --exec babel-node server.js",
+    "queue:work": "node --watch ./src/workers/queueWorker.js",
+    "sq": "npx sequelize-cli",
+    "migrate": "npx sequelize-cli db:migrate",
+    "migration_name": "npx sequelize-cli migration:generate --name",
+    "sq:init": "npx sequelize-cli init",
+    "sq:migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "sq:migrate:undo:all": "npx sequelize-cli db:migrate:undo:all",
+    "seed_name": "npx sequelize-cli seed:generate --name",
+    "sq:seed": "npx sequelize-cli db:seed",
+    "sq:seed:all": "npx sequelize-cli db:seed:all",
+    "sq:seed:undo": "npx sequelize-cli db:seed:undo",
+    "sq:seed:undo:all": "npx sequelize-cli db:seed:undo:all",
+    "sq:db:drop": "npx sequelize-cli db:drop",
+    "sq:migrate:status": "npx sequelize-cli db:migrate:status"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.3",
+    "@babel/node": "^7.28.0",
+    "@babel/preset-env": "^7.28.3",
+    "sequelize-cli": "^6.6.3"
+  }
+}

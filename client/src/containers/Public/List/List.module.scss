@@ -1,0 +1,11 @@
+.list_post {
+    button {
+        cursor: pointer;
+        padding: 4px;
+        font-size: 14px;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
