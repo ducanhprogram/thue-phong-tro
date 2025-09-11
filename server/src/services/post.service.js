@@ -49,7 +49,8 @@ class PostService {
         limit = 10,
         priceCode,
         areaCode,
-        categoryCode
+        categoryCode,
+        provinceCode
     ) {
         try {
             const offset = (page - 1) * limit;
@@ -64,6 +65,10 @@ class PostService {
             }
             if (categoryCode) {
                 where.categoryCode = categoryCode;
+            }
+
+            if (provinceCode) {
+                where.provinceCode = provinceCode;
             }
 
             const { count, rows } = await Post.findAndCountAll({

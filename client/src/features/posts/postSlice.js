@@ -31,9 +31,9 @@ export const fetchPosts = createAsyncThunk("posts/getPosts", async (_, { rejectW
 
 export const fetchPostsLimit = createAsyncThunk(
     "posts/getPostsLimit",
-    async ({ page, limit, priceCode, areaCode, categoryCode }, { rejectWithValue }) => {
+    async ({ page, limit, priceCode, areaCode, categoryCode, provinceCode }, { rejectWithValue }) => {
         try {
-            const response = await getPostLimit(page, limit, priceCode, areaCode, categoryCode);
+            const response = await getPostLimit(page, limit, priceCode, areaCode, categoryCode, provinceCode);
             return response;
         } catch (error) {
             console.log("Error in fetchPostsLimit thunk:", error);

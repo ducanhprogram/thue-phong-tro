@@ -14,7 +14,14 @@ export const getPosts = async () => {
     }
 };
 
-export const getPostLimit = async (page = 1, limit = 10, priceCode = null, areaCode = null, categoryCode = null) => {
+export const getPostLimit = async (
+    page = 1,
+    limit = 10,
+    priceCode = null,
+    areaCode = null,
+    categoryCode = null,
+    provinceCode = null,
+) => {
     try {
         // Build query params
         const params = new URLSearchParams();
@@ -27,6 +34,10 @@ export const getPostLimit = async (page = 1, limit = 10, priceCode = null, areaC
 
         if (areaCode) {
             params.append("areaCode", areaCode);
+        }
+
+        if (provinceCode) {
+            params.append("provinceCode", provinceCode);
         }
 
         if (categoryCode) params.append("categoryCode", categoryCode);

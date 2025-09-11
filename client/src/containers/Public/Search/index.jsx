@@ -3,28 +3,70 @@ import styles from "./Search.module.scss";
 import SearchItem from "@/components/SearchItem";
 import Modal from "@/components/Modal";
 import icons from "@/utils/icons";
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useCallback, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPostsLimit } from "@/features/posts/postSlice";
 
 const { BsChevronRight, CiLocationOn, TbReportMoney, AiOutlineGateway, MdOutlineMapsHomeWork, FaSearch } = icons;
 
 const Search = () => {
-    const [isShowModal, setShowModal] = useState(false);
+    const [isShowModal, setIsShowModal] = useState(false);
     const [content, setContent] = useState([]);
     const [name, setName] = useState("");
 
     const { provinces } = useSelector((state) => state.provinces);
     const { areas } = useSelector((state) => state.areas);
     const { prices, categories } = useSelector((state) => state.app);
+    const [queries, setQueries] = useState({});
+    const dispatch = useDispatch();
 
     const handleItemClick = (itemType, name) => {
         setContent(itemType);
         setName(name);
-        setShowModal(true);
+        setIsShowModal(true);
     };
 
     const handleCloseModal = () => {
-        setShowModal(false);
+        setIsShowModal(false);
+    };
+
+    const handleSubmit = useCallback((e, query) => {
+        e.stopPropagation();
+        setQueries((prev) => ({ ...prev, ...query }));
+        setIsShowModal(false);
+    }, []);
+
+    // Lấy giá trị đã chọn dựa trên name hiện tại
+    const getSelectedValue = () => {
+        switch (name) {
+            case "category":
+                return queries.category;
+            case "provinces":
+                return queries.provinces;
+            case "prices":
+                return queries.prices;
+            case "areas":
+                return queries.areas;
+            default:
+                return null;
+        }
+    };
+
+    const handleSearch = () => {
+        const queryCodes = Object.entries(queries)
+            .filter((item) => item[0].includes("Code"))
+            .reduce((acc, curr) => {
+                acc[curr[0]] = curr[1];
+                return acc;
+            }, {});
+
+        const searchParams = {
+            priceCode: queryCodes.pricesCode || null,
+            areaCode: queryCodes.areasCode || null,
+            categoryCode: queryCodes.categoryCode || null,
+            provinceCode: queryCodes.provincesCode || null,
+        };
+        dispatch(fetchPostsLimit(searchParams)).unwrap();
     };
 
     return (
@@ -38,35 +80,50 @@ const Search = () => {
                     fontWeight
                     IconBefore={<MdOutlineMapsHomeWork />}
                     IconAfter={<BsChevronRight color="rgb(156, 163, 175)" />}
-                    text="Phòng trọ, nhà trọ"
+                    text={queries.category}
+                    defaultText={"Phòng trọ, nhà trọ"}
                     onClick={() => handleItemClick(categories, "category")}
                 />
                 <SearchItem
                     IconBefore={<CiLocationOn />}
                     IconAfter={<BsChevronRight color="rgb(156, 163, 175)" />}
-                    text="Toàn quốc"
+                    text={queries.provinces}
+                    defaultText={"Toàn quốc"}
                     onClick={() => handleItemClick(provinces, "provinces")}
                 />
                 <SearchItem
                     IconBefore={<TbReportMoney />}
                     IconAfter={<BsChevronRight color="rgb(156, 163, 175)" />}
-                    text="Toàn giá"
+                    text={queries.prices}
+                    defaultText={"Chọn giá"}
                     onClick={() => handleItemClick(prices, "prices")}
                 />
                 <SearchItem
                     IconBefore={<AiOutlineGateway />}
                     IconAfter={<BsChevronRight color="rgb(156, 163, 175)" />}
-                    text="Chọn diện tích"
+                    text={queries.areas}
+                    defaultText={"Chọn diện tích"}
                     onClick={() => handleItemClick(areas, "areas")}
                 />
-                <button type="button" className={clsx(`outline-none py-2 px-4 w-full ${styles.search_btn}`)}>
+                <button
+                    type="button"
+                    className={clsx(`outline-none py-2 px-4 w-full ${styles.search_btn}`)}
+                    onClick={handleSearch}
+                >
                     <FaSearch />
                     Tìm kiếm
                 </button>
             </div>
-            <button></button>
             {/* Chỉ hiển thị Modal khi isShowModal = true */}
-            {isShowModal && <Modal content={content} name={name} onClose={handleCloseModal} />}
+            {isShowModal && (
+                <Modal
+                    content={content}
+                    handleSubmit={handleSubmit}
+                    name={name}
+                    onClose={handleCloseModal}
+                    selectedValue={getSelectedValue()}
+                />
+            )}
         </>
     );
 };

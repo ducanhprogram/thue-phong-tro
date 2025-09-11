@@ -5,6 +5,7 @@ import RelatedPost from "@/components/RelatedPost";
 import List from "@/containers/Public/List";
 import { fetchPrices } from "@/features/app/appSlice";
 import { fetchAreas } from "@/features/area/areaSlice";
+import { fetchProvinces } from "@/features/province/provinceSlice";
 import clsx from "clsx";
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";

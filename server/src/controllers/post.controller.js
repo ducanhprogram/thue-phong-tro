@@ -18,6 +18,7 @@ exports.getPostsLimit = async (req, res) => {
         const priceCode = req.query.priceCode;
         const areaCode = req.query.areaCode;
         const categoryCode = req.query.categoryCode;
+        const provinceCode = req.query.provinceCode;
 
         if (page < 1) {
             return res.error(400, "Page phải lớn hơn 0");
@@ -31,7 +32,8 @@ exports.getPostsLimit = async (req, res) => {
             limit,
             priceCode,
             areaCode,
-            categoryCode
+            categoryCode,
+            provinceCode
         );
         return res.success(
             200,

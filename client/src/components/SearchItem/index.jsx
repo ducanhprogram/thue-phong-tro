@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { memo } from "react";
 import styles from "./SearchItem.module.scss";
 
-const SearchItem = ({ IconBefore, IconAfter, text, fontWeight, onClick }) => {
+const SearchItem = ({ IconBefore, IconAfter, text, fontWeight, onClick, defaultText }) => {
     return (
         <div
             className={clsx(
@@ -12,9 +12,15 @@ const SearchItem = ({ IconBefore, IconAfter, text, fontWeight, onClick }) => {
         >
             <div className={clsx(`flex items-center gap-1`)}>
                 {IconBefore}
-                {text && (
-                    <span className={clsx(`${(styles.text, fontWeight && "font-medium text-black")}`)}>{text}</span>
-                )}
+                <span
+                    className={clsx(
+                        `${(styles.text, fontWeight && "font-medium text-black")} ${
+                            text ? "font-medium text-black" : ""
+                        }`,
+                    )}
+                >
+                    {text || defaultText}
+                </span>
             </div>
             {IconAfter && <span className="text-sm">{IconAfter}</span>}
         </div>
