@@ -1,7 +1,8 @@
+// Login/index.jsx - Sửa để dùng Redux state
 import InputForm from "@/components/InputForm";
 import ForgotPasswordModal from "@/pages/ForgotPassword";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, clearError } from "@/features/auth/authSlice";
 import { resendVerifyEmail } from "@/services/authService";
@@ -18,11 +19,40 @@ const Login = () => {
     const [showResendVerification, setShowResendVerification] = useState(false);
     const [unverifiedEmail, setUnverifiedEmail] = useState("");
     const [resendLoading, setResendLoading] = useState(false);
+    const [loginSuccess, setLoginSuccess] = useState(false); // Local success state
 
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
-    const { loading } = useSelector((state) => state.auth);
+
+    // LẤY REDUX STATE THAY VÌ LOCAL STATE
+    const { loading, isLoggedIn, profileUser } = useSelector((state) => state.auth);
     const { showError, showSuccess, showLoading, dismiss, toastOptions } = useToast();
+
+    // Redirect nếu đã đăng nhập (từ persist hoặc vừa login thành công)
+    useEffect(() => {
+        if (isLoggedIn && !loginSuccess && profileUser) {
+            // Đã đăng nhập từ trước (persist), redirect ngay
+
+            navigate("/", { replace: true });
+        } else if (loginSuccess && isLoggedIn) {
+            // Vừa login thành công, delay trước khi redirect
+
+            const timer = setTimeout(() => {
+                navigate("/", { replace: true });
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoggedIn, loginSuccess, navigate, profileUser]);
+
+    // Check verification success message from URL state
+    useEffect(() => {
+        if (location.state?.verificationSuccess) {
+            console.log("Showing success toast");
+            showSuccess(location.state.message);
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state?.verificationSuccess, location.state?.message, navigate]);
 
     const togglePasswordVisibility = () => {
         setShowPassword((prev) => !prev);
@@ -52,34 +82,53 @@ const Login = () => {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (loading || loginSuccess) {
+            return;
+        }
+
         // Validate form
         if (!email.trim() || !password) {
             showError("Vui lòng điền đầy đủ thông tin!");
             return;
         }
 
+        console.log("Submitting login with:", { email, password: "***" });
+
         dispatch(clearError());
         setFormErrors({});
         setShowResendVerification(false);
 
-        // Loading toast
         const loadingToast = showLoading("Đang đăng nhập...");
 
         try {
             await dispatch(loginUser({ email, password })).unwrap();
+
+            console.log("Login successful!");
+            setLoginSuccess(true); // Set local success state
             showSuccess("Đăng nhập thành công!");
-            setTimeout(() => {
-                navigate("/");
-            }, 2000);
-            setShowResendVerification(false);
+
+            // Redirect sẽ được handle bởi useEffect
         } catch (err) {
-            // Kiểm tra lỗi email chưa xác thực
-            if (err?.statusCode === 403 && err?.message?.includes("Tài khoản chưa được xác minh")) {
-                setUnverifiedEmail(email);
-                showError("Email của bạn chưa được xác thực. Vui lòng kiểm tra email hoặc gửi lại email xác thực.");
+            console.log("Login error details:", err);
+
+            // QUAN TRỌNG: KHÔNG clear input khi có lỗi
+            // Chỉ set error messages
+
+            const isUnverifiedError =
+                err?.statusCode === 403 ||
+                err?.message?.toLowerCase().includes("chưa được xác minh") ||
+                err?.message?.toLowerCase().includes("chưa xác thực") ||
+                err?.message?.toLowerCase().includes("not verified") ||
+                err?.message?.toLowerCase().includes("unverified");
+
+            if (isUnverifiedError) {
+                console.log("Email unverified, showing resend verification modal");
+                setUnverifiedEmail(email); // Set email từ form
                 setShowResendVerification(true);
-                console.log("showResendVerification set to true"); // Debug
+                showError("Tài khoản của bạn chưa được xác thực. Vui lòng xác thực email trước khi đăng nhập.");
                 return;
             }
 
@@ -94,8 +143,8 @@ const Login = () => {
                 setFormErrors(newErrors);
                 showError(err.errors[0]?.msg || "Vui lòng kiểm tra lại thông tin");
             } else {
-                // Lỗi không phải validation
-                console.log("Non-validation error");
+                // Lỗi khác
+                console.log("Other login error");
                 showError(err?.message || "Đăng nhập thất bại. Vui lòng thử lại!");
             }
         } finally {
@@ -110,6 +159,11 @@ const Login = () => {
     const handleForgotPasswordClick = (e) => {
         e.preventDefault();
         setShowForgotPassword(true);
+    };
+
+    const handleCloseResendModal = () => {
+        setShowResendVerification(false);
+        setUnverifiedEmail("");
     };
 
     return (
@@ -127,48 +181,106 @@ const Login = () => {
 
             {/* Resend Verification Modal */}
             {showResendVerification && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-                        <div className="mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Xác thực Email</h3>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 relative transform transition-all duration-300 scale-100">
+                        <button
+                            onClick={handleCloseResendModal}
+                            disabled={resendLoading}
+                            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                        </button>
+
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <svg
+                                    className="w-8 h-8 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Xác thực Email</h3>
                             <p className="text-sm text-gray-600">
-                                Email của bạn chưa được xác thực. Nhập email để gửi lại link xác thực.
+                                Tài khoản của bạn chưa được xác thực. Nhập email để gửi lại link xác thực.
                             </p>
                         </div>
 
-                        <div className="mb-4">
+                        <div className="mb-6">
+                            <label className="text-sm font-medium text-gray-700 block mb-2">Địa chỉ email</label>
                             <InputForm
                                 type="email"
                                 placeholder="Nhập email của bạn"
                                 value={unverifiedEmail}
                                 onChange={(e) => setUnverifiedEmail(e.target.value)}
                                 disabled={resendLoading}
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
                             />
                         </div>
 
-                        <div className="flex gap-3 justify-end">
+                        <div className="flex gap-3">
                             <button
-                                className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition duration-200"
-                                onClick={() => {
-                                    setShowResendVerification(false);
-                                    setUnverifiedEmail("");
-                                }}
+                                className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition duration-200"
+                                onClick={handleCloseResendModal}
                                 disabled={resendLoading}
                             >
                                 Hủy bỏ
                             </button>
                             <button
                                 className={clsx(
-                                    "px-4 py-2 text-white rounded-lg font-medium transition duration-200",
+                                    "flex-1 px-4 py-3 text-white rounded-xl font-medium transition duration-200",
                                     resendLoading
                                         ? "bg-gray-400 cursor-not-allowed"
-                                        : "bg-orange-500 hover:bg-orange-600",
+                                        : "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg",
                                 )}
                                 onClick={handleResendVerification}
-                                disabled={resendLoading}
+                                disabled={resendLoading || !unverifiedEmail.trim()}
                             >
-                                {resendLoading ? "Đang gửi..." : "Gửi lại"}
+                                {resendLoading ? (
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        <span>Đang gửi...</span>
+                                    </div>
+                                ) : (
+                                    "Gửi lại xác thực"
+                                )}
                             </button>
+                        </div>
+
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                            <div className="flex items-start space-x-2">
+                                <svg
+                                    className="w-4 h-4 text-blue-500 mt-0.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                                <p className="text-xs text-blue-700">
+                                    Link xác thực có hiệu lực trong 24 giờ. Kiểm tra cả hộp thư spam nếu không thấy
+                                    email.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -186,7 +298,7 @@ const Login = () => {
                     </div>
                 </div>
 
-                <div className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <InputForm
                         type="email"
                         placeholder="Email"
@@ -197,7 +309,7 @@ const Login = () => {
                                 setFormErrors((prev) => ({ ...prev, email: null }));
                             }
                         }}
-                        disabled={loading}
+                        disabled={loading || loginSuccess}
                         error={formErrors.email}
                     />
                     <div className="relative">
@@ -211,7 +323,7 @@ const Login = () => {
                                     setFormErrors((prev) => ({ ...prev, password: null }));
                                 }
                             }}
-                            disabled={loading}
+                            disabled={loading || loginSuccess}
                             error={formErrors.password}
                             className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
                         />
@@ -219,7 +331,8 @@ const Login = () => {
                             type="button"
                             onClick={togglePasswordVisibility}
                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                            disabled={loading}
+                            disabled={loading || loginSuccess}
+                            tabIndex={-1}
                         >
                             {showPassword ? (
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,24 +362,24 @@ const Login = () => {
                         </button>
                     </div>
                     <button
-                        onClick={handleSubmit}
-                        disabled={loading}
+                        type="submit"
+                        disabled={loading || loginSuccess}
                         className={clsx(
                             "w-full py-3 rounded-lg font-semibold transition duration-200",
-                            loading
+                            loading || loginSuccess
                                 ? "bg-gray-400 text-white cursor-not-allowed"
                                 : "bg-orange-500 text-white hover:bg-orange-600 hover:cursor-pointer",
                         )}
                     >
-                        {loading ? "Đang xử lý..." : "Đăng nhập"}
+                        {loading ? "Đang xử lý..." : loginSuccess ? "Đang chuyển hướng..." : "Đăng nhập"}
                     </button>
-                </div>
+                </form>
 
                 <div className="mt-4 text-center">
                     <button
                         onClick={handleForgotPasswordClick}
                         className="text-blue-500 text-sm hover:underline"
-                        disabled={loading}
+                        disabled={loading || loginSuccess}
                     >
                         Bạn quên mật khẩu?
                     </button>

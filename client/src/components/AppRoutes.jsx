@@ -9,6 +9,8 @@ import HomePage from "@/pages/HomePage";
 import ResetPassword from "@/pages/ResetPassword";
 import VerifyEmail from "@/pages/VerifyEmail";
 import { Route, Routes } from "react-router-dom";
+import Dashboard from "@/containers/Protected/Dashboard";
+import CreatePost from "@/containers/Protected/CreatePost";
 
 function AppRoutes() {
     return (
@@ -28,6 +30,10 @@ function AppRoutes() {
             <Route path={config.routes.verifyEmail} element={<VerifyEmail />}></Route>
             <Route path={config.routes.resetPassword} element={<ResetPassword />}></Route>
             <Route path={config.routes.notFound} element={<NotFound />}></Route>
+
+            <Route path={config.routes.dashboard} element={<Dashboard />}>
+                <Route path={config.routes.createPost} element={<CreatePost />} />
+            </Route>
         </Routes>
     );
 }

@@ -2,10 +2,11 @@
 import { post, get } from "@/utils/httpRequest";
 
 // Đăng ký tài khoản mới
-export const register = async (name, email, password) => {
+export const register = async (name, email, password, phone) => {
     try {
         console.log("🚀 API Base URL:", import.meta.env.VITE_API_URL);
         const response = await post("/auth/register", {
+            phone,
             name,
             email,
             password,

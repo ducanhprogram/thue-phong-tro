@@ -13,6 +13,8 @@ const config = {
         nhachothue: "/nha-cho-thue",
         postDetailTitlePostID: "/chi-tiet/:title/:postId",
         homePage: "/",
+        dashboard: "/dashboard/*",
+        createPost: "tao-tin-dang",
         notFound: "*",
     },
 };

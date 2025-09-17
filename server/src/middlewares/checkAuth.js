@@ -16,7 +16,14 @@ module.exports = async function checkAuth(req, res, next) {
 
         const user = await User.findOne({
             where: { id: payload.userId },
-            attributes: ["id", "email", "name", "createdAt"],
+            attributes: [
+                "id",
+                "email",
+                "name",
+                "avatar",
+                "facebook_url",
+                "createdAt",
+            ],
         });
         if (!user) {
             return res.error(401, "User không tồn tại");

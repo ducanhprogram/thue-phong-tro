@@ -2,12 +2,14 @@
 import clsx from "clsx";
 import styles from "./List.module.scss";
 import Items from "@/components/Items";
+import SearchResult from "@/components/SearchResult";
 import { MessageSquareOff } from "lucide-react";
 import Pagination from "@/containers/Public/Pagination";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { fetchPostsLimit, clearError } from "@/features/posts/postSlice";
+import { useCallback } from "react";
 
 const List = ({ categoryCode }) => {
     const dispatch = useDispatch();
@@ -17,24 +19,38 @@ const List = ({ categoryCode }) => {
     const pageFromUrl = parseInt(searchParams.get("page")) || 1;
     const priceCodeFromUrl = searchParams.get("priceCode") || null;
     const areaCodeFromUrl = searchParams.get("areaCode") || null;
+    const provinceCodeFromUrl = searchParams.get("provinceCode") || null;
     const [currentPage, setCurrentPage] = useState(pageFromUrl);
+    const [hasSearched, setHasSearched] = useState(false);
     const limit = 10;
+
+    // Kiểm tra xem có filter nào được áp dụng không
+
+    const hasActiveFilters = useCallback(() => {
+        return priceCodeFromUrl || areaCodeFromUrl || provinceCodeFromUrl;
+    }, [priceCodeFromUrl, areaCodeFromUrl, provinceCodeFromUrl]);
 
     useEffect(() => {
         setCurrentPage(pageFromUrl);
     }, [pageFromUrl]);
 
     useEffect(() => {
+        // Chỉ set hasSearched = true khi có filter hoặc đã fetch data
+        if (hasActiveFilters() || categoryCode) {
+            setHasSearched(true);
+        }
+
         dispatch(
             fetchPostsLimit({
                 page: currentPage,
                 limit,
                 priceCode: priceCodeFromUrl,
                 areaCode: areaCodeFromUrl,
+                provinceCode: provinceCodeFromUrl,
                 categoryCode,
             }),
         );
-    }, [dispatch, currentPage, priceCodeFromUrl, areaCodeFromUrl, categoryCode]);
+    }, [dispatch, currentPage, priceCodeFromUrl, areaCodeFromUrl, provinceCodeFromUrl, categoryCode, hasActiveFilters]);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
@@ -48,11 +64,36 @@ const List = ({ categoryCode }) => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
+    // Hàm clear tất cả filters
+    const handleClearAllFilters = () => {
+        const newSearchParams = new URLSearchParams();
+        setSearchParams(newSearchParams);
+        setCurrentPage(1);
+        setHasSearched(false);
+    };
+
     return (
         <div className={clsx("w-full p-2 shadow-md bg-white rounded-md")}>
+            {/* Hiển thị title mặc định hoặc kết quả tìm kiếm */}
+            {!hasSearched && !hasActiveFilters() ? (
+                <div className="mb-6"></div>
+            ) : (
+                <SearchResult categoryCode={categoryCode} hasSearched={hasSearched} />
+            )}
+
             <div className="flex items-center justify-between my-3">
                 <h4 className="text-xl font-semibold">Danh sách tin đăng</h4>
-                <span className="text-sm">Cập nhật: 12:09 25/08/2025</span>
+                <div className="flex items-center gap-3">
+                    {hasActiveFilters() && (
+                        <button
+                            onClick={handleClearAllFilters}
+                            className="text-sm text-red-500 hover:text-red-700 underline"
+                        >
+                            Xóa bộ lọc
+                        </button>
+                    )}
+                    <span className="text-sm text-gray-500">Cập nhật: 12:09 25/08/2025</span>
+                </div>
             </div>
 
             <div className={clsx(`flex items-center gap-2 ${styles.list_post}`)}>
@@ -103,11 +144,19 @@ const List = ({ categoryCode }) => {
                     ))
                 ) : !loading && paginatedPosts?.length === 0 ? (
                     <div className="text-center py-8">
-                        <p className="text-gray-500 text-lg">Không có bài viết nào</p>
-                        <div className="flex items-center justify-center">
-                            <MessageSquareOff />
+                        <p className="text-gray-500 text-lg">Không có bài viết nào phù hợp với tìm kiếm</p>
+                        <div className="flex items-center justify-center mt-2">
+                            <MessageSquareOff className="w-12 h-12 text-gray-400" />
                         </div>
-                        <p className="text-gray-400 text-sm mt-2">Vui lòng thử lại sau hoặc thay đổi bộ lọc</p>
+                        <p className="text-gray-400 text-sm mt-2">
+                            Vui lòng thử lại với các tiêu chí khác hoặc{" "}
+                            <button
+                                onClick={handleClearAllFilters}
+                                className="text-blue-500 hover:text-blue-700 underline"
+                            >
+                                xóa bộ lọc
+                            </button>
+                        </p>
                     </div>
                 ) : null}
             </div>

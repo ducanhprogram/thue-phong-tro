@@ -11,7 +11,7 @@ import provinceReducer from "@/features/province/provinceSlice";
 const persistConfig = {
     key: "auth", // Đổi key để tránh conflict
     storage,
-    whitelist: ["user", "accessToken", "refreshToken", "isAuthenticated", "isLoggedIn"], // Chỉ persist những field cần thiết
+    whitelist: ["loginUser", "profileUser", "accessToken", "refreshToken", "isAuthenticated", "isLoggedIn"], // Chỉ persist những field cần thiết
 };
 
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);

@@ -28,7 +28,6 @@ const CategoryPage = () => {
         dispatch(fetchAreas());
     }, [dispatch]);
 
-    console.log(categories);
     // Nếu không tìm thấy category, có thể redirect hoặc show 404
     if (categories.length > 0 && !currentCategory) {
         return (

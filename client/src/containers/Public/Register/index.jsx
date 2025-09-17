@@ -1,5 +1,5 @@
 import InputForm from "@/components/InputForm";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser, clearError } from "@/features/auth/authSlice";
@@ -10,8 +10,10 @@ import { Toaster } from "react-hot-toast";
 const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [phone, setPhone] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [fullName, setFullName] = useState("");
+    const [registerSuccess, setRegisterSuccess] = useState(false);
     const [showPasswords, setShowPasswords] = useState({
         password: false,
         confirmPassword: false,
@@ -19,8 +21,25 @@ const Register = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [formErrors, setFormErrors] = useState({});
-    const { loading } = useSelector((state) => state.auth);
+
+    // Sử dụng Redux state thay vì local state
+    const { loading, isLoggedIn } = useSelector((state) => state.auth);
     const { showSuccess, showError, showLoading, dismiss, toastOptions } = useToast();
+
+    // Handle redirect nếu đã đăng nhập từ trước
+    useEffect(() => {
+        if (isLoggedIn && !registerSuccess) {
+            // Đã đăng nhập từ trước, redirect ngay
+            console.log("Already logged in, redirecting from register...");
+            navigate("/", { replace: true });
+        } else if (registerSuccess) {
+            // Vừa đăng ký thành công, delay redirect
+            const timer = setTimeout(() => {
+                navigate("/login", { state: { email, needVerification: true } });
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoggedIn, registerSuccess, navigate, email]);
 
     const togglePasswordVisibility = (field) => {
         setShowPasswords((prev) => ({
@@ -29,69 +48,116 @@ const Register = () => {
         }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault(); // Ngăn chặn reload trang khi submit form
+    // Validate theo backend regex pattern
+    const validatePhone = (phoneNumber) => {
+        const vietnamesePhoneRegex = /^(\+84|84|0)(3[2-9]|5[2689]|7[06-9]|8[1-689]|9[0-46-9])[0-9]{7}$/;
+        const cleanPhone = phoneNumber.replace(/[\s\-.]/g, "");
+        return vietnamesePhoneRegex.test(cleanPhone);
+    };
 
-        // Validate form
-        if (!fullName.trim() || !email.trim() || !password || !confirmPassword) {
-            showError("Vui lòng điền đầy đủ thông tin!");
+    const validatePassword = (password) => {
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+        return strongPasswordRegex.test(password);
+    };
+
+    const validateName = (name) => {
+        const nameRegex = /^[\p{L} ]+$/u; // Unicode letters và dấu cách
+        return name.length >= 2 && name.length <= 50 && nameRegex.test(name.trim());
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (loading || registerSuccess) {
             return;
         }
 
-        if (password !== confirmPassword) {
-            showError("Mật khẩu xác nhận không khớp!");
+        console.log("=== REGISTER FORM SUBMIT ===");
+        console.log("Form data:", {
+            fullName,
+            email,
+            phone,
+            password: password ? "has value" : "empty",
+            confirmPassword: confirmPassword ? "has value" : "empty",
+        });
+
+        // Validate form theo backend requirements
+        const errors = {};
+
+        // Validate name
+        if (!fullName.trim()) {
+            errors.name = "Tên không được để trống";
+        } else if (!validateName(fullName)) {
+            errors.name = "Tên phải có độ dài từ 2-50 ký tự và chỉ chứa chữ cái";
+        }
+
+        // Validate email
+        if (!email.trim()) {
+            errors.email = "Email không được để trống";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            errors.email = "Email không hợp lệ";
+        }
+
+        // Validate phone
+        if (!phone.trim()) {
+            errors.phone = "Số điện thoại không được để trống";
+        } else if (!validatePhone(phone)) {
+            errors.phone = "Số điện thoại không đúng định dạng. VD: 0987654321, +84987654321";
+        }
+
+        // Validate password
+        if (!password) {
+            errors.password = "Mật khẩu không được để trống";
+        } else if (!validatePassword(password)) {
+            errors.password = "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt";
+        }
+
+        // Validate confirm password
+        if (!confirmPassword) {
+            errors.confirmPassword = "Vui lòng nhập lại mật khẩu";
+        } else if (password && confirmPassword && password !== confirmPassword) {
+            errors.confirmPassword = "Mật khẩu xác nhận không khớp";
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            const firstError = errors.name || errors.email || errors.phone || errors.password || errors.confirmPassword;
+            showError(firstError);
             return;
         }
 
         dispatch(clearError());
         setFormErrors({});
 
-        // Loading toast
         const loadingToast = showLoading("Đang tạo tài khoản...");
 
         try {
-            await dispatch(registerUser({ name: fullName, email, password })).unwrap();
+            await dispatch(
+                registerUser({
+                    name: fullName.trim(),
+                    email: email.trim(),
+                    password,
+                    phone: phone.trim(),
+                }),
+            ).unwrap();
 
-            showSuccess("Đăng ký thành công! 🎉\nVui lòng kiểm tra email để xác thực tài khoản.", {
+            setRegisterSuccess(true);
+            showSuccess("Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.", {
                 duration: 4000,
             });
-
-            // Chuyển sang trang login sau 2 giây
-            setTimeout(() => {
-                navigate("/login", { state: { email, needVerification: true } });
-            }, 2000);
         } catch (err) {
-            console.log("=== REGISTER ERROR DEBUG ===");
-            console.log("err:", err);
-            console.log("err.errors:", err?.errors);
-            console.log("Array.isArray(err?.errors):", Array.isArray(err?.errors));
-
-            // Kiểm tra xem có phải validation error không
-            if (err?.errors && Array.isArray(err.errors) && err.errors.length > 0) {
-                console.log("Processing validation errors...");
-
+            // Handle backend validation errors
+            if (err?.errors && Array.isArray(err.errors)) {
                 const newErrors = {};
                 err.errors.forEach((error) => {
-                    console.log(`Processing: ${error.path} = ${error.msg}`);
-                    if (error.path === "name") {
-                        newErrors.fullName = error.msg;
-                    } else if (error.path === "email") {
-                        newErrors.email = error.msg;
-                    } else if (error.path === "password") {
-                        newErrors.password = error.msg;
-                    } else {
-                        newErrors[error.path] = error.msg;
-                    }
+                    console.log(`Validation error: ${error.path} = ${error.msg}`);
+                    newErrors[error.path] = error.msg;
                 });
-
                 setFormErrors(newErrors);
-
-                // Hiển thị toast với message cụ thể từ validation error đầu tiên
-                const firstError = err.errors[0];
-                showError(firstError?.msg || err.message || "Vui lòng kiểm tra lại thông tin");
+                const firstError =
+                    newErrors.email || newErrors.phone || newErrors.name || newErrors.password || err.message;
+                showError(firstError);
             } else {
-                // Lỗi không phải validation
-                console.log("Non-validation error");
                 showError(err?.message || "Đăng ký thất bại. Vui lòng thử lại!");
             }
         } finally {
@@ -100,7 +166,20 @@ const Register = () => {
     };
 
     const switchToLogin = () => {
-        navigate(`/login`);
+        navigate("/login");
+    };
+
+    // Format phone number display (add spaces for better UX)
+    const formatPhoneDisplay = (value) => {
+        if (!value) return "";
+        const numbers = value.replace(/\D/g, "");
+
+        if (numbers.length >= 7) {
+            return numbers.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
+        } else if (numbers.length >= 4) {
+            return numbers.replace(/(\d{4})(\d+)/, "$1 $2");
+        }
+        return numbers;
     };
 
     return (
@@ -111,13 +190,13 @@ const Register = () => {
                     <div className="flex">
                         <button
                             onClick={switchToLogin}
-                            className={clsx(`text-gray-500 pb-2 mr-8 hover:cursor-pointer`)}
+                            className={clsx("text-gray-500 pb-2 mr-8 hover:cursor-pointer")}
                         >
                             Đăng nhập
                         </button>
                         <button
                             className={clsx(
-                                `text-black font-semibold pb-2 border-b-2 border-orange-500 hover:cursor-pointer`,
+                                "text-black font-semibold pb-2 border-b-2 border-orange-500 hover:cursor-pointer",
                             )}
                         >
                             Tạo tài khoản mới
@@ -132,13 +211,14 @@ const Register = () => {
                         value={fullName}
                         onChange={(e) => {
                             setFullName(e.target.value);
-                            if (formErrors.fullName) {
-                                setFormErrors((prev) => ({ ...prev, fullName: null }));
+                            if (formErrors.name) {
+                                setFormErrors((prev) => ({ ...prev, name: null }));
                             }
                         }}
-                        disabled={loading}
-                        error={formErrors.fullName}
+                        disabled={loading || registerSuccess}
+                        error={formErrors.name}
                     />
+
                     <InputForm
                         type="email"
                         placeholder="Email"
@@ -149,13 +229,31 @@ const Register = () => {
                                 setFormErrors((prev) => ({ ...prev, email: null }));
                             }
                         }}
-                        disabled={loading}
+                        disabled={loading || registerSuccess}
                         error={formErrors.email}
                     />
+
+                    <InputForm
+                        type="tel"
+                        placeholder="Số điện thoại (VD: 0987654321)"
+                        value={formatPhoneDisplay(phone)}
+                        onChange={(e) => {
+                            // Chỉ lưu số thuần vào state
+                            const value = e.target.value.replace(/\D/g, "");
+                            setPhone(value);
+                            if (formErrors.phone) {
+                                setFormErrors((prev) => ({ ...prev, phone: null }));
+                            }
+                        }}
+                        disabled={loading || registerSuccess}
+                        error={formErrors.phone}
+                        maxLength="13" // 0987 654 321 = 13 chars with spaces
+                    />
+
                     <div className="relative">
                         <InputForm
                             type={showPasswords.password ? "text" : "password"}
-                            placeholder="Mật khẩu (tối thiểu 8 ký tự)"
+                            placeholder="Mật khẩu (ít nhất 8 ký tự, có chữ hoa, thường, số, ký tự đặc biệt)"
                             value={password}
                             onChange={(e) => {
                                 setPassword(e.target.value);
@@ -163,15 +261,15 @@ const Register = () => {
                                     setFormErrors((prev) => ({ ...prev, password: null }));
                                 }
                             }}
-                            disabled={loading}
+                            disabled={loading || registerSuccess}
                             error={formErrors.password}
-                            className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
                         />
                         <button
                             type="button"
                             onClick={() => togglePasswordVisibility("password")}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                            disabled={loading}
+                            className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                            disabled={loading || registerSuccess}
+                            tabIndex={-1}
                         >
                             {showPasswords.password ? (
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,6 +298,7 @@ const Register = () => {
                             )}
                         </button>
                     </div>
+
                     <div className="relative">
                         <InputForm
                             type={showPasswords.confirmPassword ? "text" : "password"}
@@ -211,15 +310,15 @@ const Register = () => {
                                     setFormErrors((prev) => ({ ...prev, confirmPassword: null }));
                                 }
                             }}
-                            disabled={loading}
+                            disabled={loading || registerSuccess}
                             error={formErrors.confirmPassword}
-                            className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
                         />
                         <button
                             type="button"
                             onClick={() => togglePasswordVisibility("confirmPassword")}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                            disabled={loading}
+                            className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                            disabled={loading || registerSuccess}
+                            tabIndex={-1}
                         >
                             {showPasswords.confirmPassword ? (
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,17 +347,18 @@ const Register = () => {
                             )}
                         </button>
                     </div>
+
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || registerSuccess}
                         className={clsx(
                             "w-full py-3 rounded-lg font-semibold transition duration-200",
-                            loading
+                            loading || registerSuccess
                                 ? "bg-gray-400 text-white cursor-not-allowed"
                                 : "bg-orange-500 text-white hover:bg-orange-600 hover:cursor-pointer",
                         )}
                     >
-                        {loading ? "Đang xử lý..." : "Tạo tài khoản"}
+                        {loading ? "Đang xử lý..." : registerSuccess ? "Đang chuyển hướng..." : "Tạo tài khoản"}
                     </button>
                 </form>
 

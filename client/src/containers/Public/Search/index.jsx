@@ -5,7 +5,9 @@ import Modal from "@/components/Modal";
 import icons from "@/utils/icons";
 import { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { fetchPostsLimit } from "@/features/posts/postSlice";
+import { formatVietnameseToString } from "@/utils/formatVietNameseToString";
 
 const { BsChevronRight, CiLocationOn, TbReportMoney, AiOutlineGateway, MdOutlineMapsHomeWork, FaSearch } = icons;
 
@@ -13,6 +15,8 @@ const Search = () => {
     const [isShowModal, setIsShowModal] = useState(false);
     const [content, setContent] = useState([]);
     const [name, setName] = useState("");
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     const { provinces } = useSelector((state) => state.provinces);
     const { areas } = useSelector((state) => state.areas);
@@ -52,21 +56,66 @@ const Search = () => {
         }
     };
 
+    // Hàm kiểm tra xem có phải giá trị mặc định không
+    const isDefaultValue = (value) => {
+        const defaultValues = ["Toàn quốc", "Mọi giá", "Mọi diện tích", "Tất cả"];
+        return defaultValues.includes(value);
+    };
+
     const handleSearch = () => {
         const queryCodes = Object.entries(queries)
             .filter((item) => item[0].includes("Code"))
             .reduce((acc, curr) => {
-                acc[curr[0]] = curr[1];
+                // Nếu code là null (giá trị mặc định), không gửi lên server
+                if (curr[1] !== null) {
+                    acc[curr[0]] = curr[1];
+                }
                 return acc;
             }, {});
 
+        // Tạo URL params cho tìm kiếm
+        const newSearchParams = new URLSearchParams();
+
+        // Thêm các filter codes
+        if (queryCodes.pricesCode) {
+            newSearchParams.set("priceCode", queryCodes.pricesCode);
+        }
+        if (queryCodes.areasCode) {
+            newSearchParams.set("areaCode", queryCodes.areasCode);
+        }
+        if (queryCodes.provincesCode) {
+            newSearchParams.set("provinceCode", queryCodes.provincesCode);
+        }
+
+        // Xử lý category - nếu có category được chọn, chuyển đến trang category đó
+        if (queryCodes.categoryCode && queries.category && !isDefaultValue(queries.category)) {
+            const categorySlug = formatVietnameseToString(queries.category);
+            navigate(`/${categorySlug}?${newSearchParams.toString()}`);
+        } else {
+            // Nếu không có category cụ thể, ở lại trang hiện tại và update params
+            navigate(`/?${newSearchParams.toString()}`);
+        }
+
+        // Gửi request lấy dữ liệu
         const searchParams = {
             priceCode: queryCodes.pricesCode || null,
             areaCode: queryCodes.areasCode || null,
             categoryCode: queryCodes.categoryCode || null,
             provinceCode: queryCodes.provincesCode || null,
+            page: 1,
+            limit: 10,
         };
-        dispatch(fetchPostsLimit(searchParams)).unwrap();
+
+        dispatch(fetchPostsLimit(searchParams));
+    };
+
+    // Hàm lấy text hiển thị cho SearchItem
+    const getDisplayText = (queryKey) => {
+        const value = queries[queryKey];
+        if (!value || isDefaultValue(value)) {
+            return null; // Sẽ hiển thị defaultText
+        }
+        return value;
     };
 
     return (
@@ -80,28 +129,28 @@ const Search = () => {
                     fontWeight
                     IconBefore={<MdOutlineMapsHomeWork />}
                     IconAfter={<BsChevronRight color="rgb(156, 163, 175)" />}
-                    text={queries.category}
+                    text={getDisplayText("category")}
                     defaultText={"Phòng trọ, nhà trọ"}
                     onClick={() => handleItemClick(categories, "category")}
                 />
                 <SearchItem
                     IconBefore={<CiLocationOn />}
                     IconAfter={<BsChevronRight color="rgb(156, 163, 175)" />}
-                    text={queries.provinces}
+                    text={getDisplayText("provinces")}
                     defaultText={"Toàn quốc"}
                     onClick={() => handleItemClick(provinces, "provinces")}
                 />
                 <SearchItem
                     IconBefore={<TbReportMoney />}
                     IconAfter={<BsChevronRight color="rgb(156, 163, 175)" />}
-                    text={queries.prices}
+                    text={getDisplayText("prices")}
                     defaultText={"Chọn giá"}
                     onClick={() => handleItemClick(prices, "prices")}
                 />
                 <SearchItem
                     IconBefore={<AiOutlineGateway />}
                     IconAfter={<BsChevronRight color="rgb(156, 163, 175)" />}
-                    text={queries.areas}
+                    text={getDisplayText("areas")}
                     defaultText={"Chọn diện tích"}
                     onClick={() => handleItemClick(areas, "areas")}
                 />

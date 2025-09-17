@@ -1,9 +1,10 @@
 // src/features/auth/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { login, register, resetPassword, verifyEmail, resendVerifyEmail } from "@/services/authService";
+import { login, register, resetPassword, verifyEmail, resendVerifyEmail, getMe } from "@/services/authService";
 
 const initialState = {
-    user: null,
+    loginUser: null,
+    profileUser: {},
     accessToken: null,
     refreshToken: null,
     isAuthenticated: false,
@@ -15,16 +16,16 @@ const initialState = {
 // Async thunk để đăng ký
 export const registerUser = createAsyncThunk(
     "auth/register",
-    async ({ name, email, password }, { rejectWithValue }) => {
+    async ({ name, email, password, phone }, { rejectWithValue }) => {
         try {
-            const response = await register(name, email, password);
+            const response = await register(name, email, password, phone);
             return response;
         } catch (error) {
             // Truyền đầy đủ thông tin error bao gồm cả errors array
             return rejectWithValue({
                 message: error.message,
                 statusCode: error.statusCode || 500,
-                errors: error.errors || error.response?.data?.errors, // Thêm errors
+                errors: error.errors || error.response?.data?.errors || [], // Thêm errors
             });
         }
     },
@@ -94,6 +95,19 @@ export const resetUserPassword = createAsyncThunk(
     },
 );
 
+export const fetchUserProfile = createAsyncThunk("auth/fetchUserProfile", async (_, { rejectWithValue }) => {
+    try {
+        const response = await getMe();
+        console.log(response);
+        return response.data; // response.data chứa { user }
+    } catch (error) {
+        return rejectWithValue({
+            message: error.message,
+            statusCode: error.statusCode || 500,
+        });
+    }
+});
+
 const authSlice = createSlice({
     name: "auth",
     initialState,
@@ -102,7 +116,8 @@ const authSlice = createSlice({
             state.error = null;
         },
         logout: (state) => {
-            state.user = null;
+            state.loginUser = null;
+            state.profileUser = null;
             state.accessToken = null;
             state.refreshToken = null;
             state.isAuthenticated = false;
@@ -110,10 +125,10 @@ const authSlice = createSlice({
             state.error = null;
         },
         setCredentials: (state, action) => {
-            const { accessToken, refreshToken, user } = action.payload;
+            const { accessToken, refreshToken, profileUser } = action.payload;
             state.accessToken = accessToken;
             state.refreshToken = refreshToken;
-            state.user = user;
+            state.profileUser = profileUser;
             state.isAuthenticated = true;
             state.isLoggedIn = true;
         },
@@ -150,11 +165,25 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.accessToken = action.payload.accessToken;
                 state.refreshToken = action.payload.refreshToken;
-                state.user = action.payload.user;
+                state.loginUser = action.payload.user;
                 state.isAuthenticated = true;
                 state.isLoggedIn = true;
             })
             .addCase(loginUser.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload; // Bây giờ bao gồm cả errors array
+            })
+            .addCase(fetchUserProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchUserProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.profileUser = action.payload.user;
+                state.isAuthenticated = true;
+                state.isLoggedIn = true;
+            })
+            .addCase(fetchUserProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload; // Bây giờ bao gồm cả errors array
             })

@@ -1,10 +1,10 @@
 import clsx from "clsx";
-import styles from "./Footer.module.scss";
+
 import { Link } from "react-router-dom";
 
 const Footer = () => {
     return (
-        <footer className={clsx(`${styles.footer} bg-yellow-100 py-12 px-6 mt-20`)}>
+        <footer className={clsx(`bg-yellow-100 py-12 px-6 mt-20`)}>
             <div className="max-w-7xl mx-auto">
                 {/* Partner Sites */}
                 <div className="text-center mb-10">

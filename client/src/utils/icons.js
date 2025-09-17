@@ -7,6 +7,9 @@ import { AiOutlineGateway } from "react-icons/ai";
 import { MdOutlineMapsHomeWork } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
 import { MdArrowBack } from "react-icons/md";
+import { BsChevronDown } from "react-icons/bs";
+import { RiLogoutCircleRLine } from "react-icons/ri";
+
 const icons = {
     CiCirclePlus,
     CiUser,
@@ -19,6 +22,8 @@ const icons = {
     MdOutlineMapsHomeWork,
     FaSearch,
     MdArrowBack,
+    BsChevronDown,
+    RiLogoutCircleRLine,
 };
 
 export default icons;

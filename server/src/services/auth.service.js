@@ -7,12 +7,20 @@ const refreshTokenService = require("./refreshToken.service");
 const queue = require("@/utils/queue");
 
 class AuthService {
-    async register(name, email, password) {
+    async register(name, email, password, phone) {
         try {
             const existingUserByEmail = await userService.findByEmail(email);
 
             if (existingUserByEmail) {
                 const error = new Error("Email đã được sử dụng");
+                error.statusCode = 409;
+                throw error;
+            }
+
+            // Check if phone already exists
+            const existingUserByPhone = await userService.findByPhone(phone);
+            if (existingUserByPhone) {
+                const error = new Error("Số điện thoại đã được sử dụng");
                 error.statusCode = 409;
                 throw error;
             }
@@ -35,6 +43,7 @@ class AuthService {
                 email,
                 password,
                 name,
+                phone,
             });
             await queue.dispatch("sendVerifyEmailJob", {
                 userId: newUser.id,
@@ -45,6 +54,7 @@ class AuthService {
                     id: newUser.id,
                     name: newUser.name,
                     email: newUser.email,
+                    phone: newUser.phone,
                     createdAt: newUser.createdAt,
                     updatedAt: newUser.updatedAt,
                 },
@@ -61,6 +71,7 @@ class AuthService {
                     "id",
                     "name",
                     "email",
+                    "phone",
                     "password",
                     "email_verified",
                     "createdAt",

@@ -26,6 +26,25 @@ const Modal = ({ onClose, content, name, handleSubmit, selectedValue }) => {
         handleSubmit(e, { [name]: item.value, [`${name}Code`]: item.code });
     };
 
+    // Hàm để lấy option mặc định cho mỗi loại
+    const getDefaultOption = () => {
+        switch (name) {
+            case "provinces":
+                return { value: "Toàn quốc", code: null };
+            case "prices":
+                return { value: "Mọi giá", code: null };
+            case "areas":
+                return { value: "Mọi diện tích", code: null };
+            case "category":
+                return { value: "Tất cả", code: null };
+            default:
+                return null;
+        }
+    };
+
+    const defaultOption = getDefaultOption();
+    const isDefaultSelected = !selectedValue || selectedValue === defaultOption?.value;
+
     return (
         <div
             className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
@@ -51,9 +70,45 @@ const Modal = ({ onClose, content, name, handleSubmit, selectedValue }) => {
                 {/* Content */}
                 <div className={`max-h-96 overflow-y-auto bg-gray-50 ${styles["custom-scrollbar"]}`}>
                     <div className="p-2">
+                        {/* Default Option */}
+                        {defaultOption && (
+                            <label
+                                className={`group flex items-center p-3 mx-2 my-1 bg-white rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-200 border transition-all duration-200 shadow-sm ${
+                                    isDefaultSelected ? "border-blue-500 bg-blue-50" : "border-transparent"
+                                }`}
+                            >
+                                <input
+                                    type="radio"
+                                    name={name}
+                                    value={defaultOption.value}
+                                    checked={isDefaultSelected}
+                                    onChange={(e) => handleItemChange(e, defaultOption)}
+                                    className="sr-only"
+                                />
+                                <div
+                                    className={`w-4 h-4 rounded-full border-2 mr-3 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
+                                        isDefaultSelected
+                                            ? "border-blue-500 bg-blue-500"
+                                            : "border-gray-300 group-hover:border-blue-500"
+                                    }`}
+                                >
+                                    {isDefaultSelected && <div className="w-2 h-2 rounded-full bg-white"></div>}
+                                </div>
+                                <span
+                                    className={`font-medium transition-colors duration-200 ${
+                                        isDefaultSelected ? "text-blue-700" : "text-gray-700 group-hover:text-blue-700"
+                                    }`}
+                                >
+                                    {defaultOption.value}
+                                </span>
+                            </label>
+                        )}
+
+                        {/* Existing Options */}
                         {content && content.length > 0 ? (
                             content.map((item, index) => {
-                                const isSelected = selectedValue === item.value;
+                                const isSelected =
+                                    selectedValue === item.value && selectedValue !== defaultOption?.value;
                                 return (
                                     <label
                                         key={item.id || item.code || index}

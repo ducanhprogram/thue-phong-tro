@@ -11,6 +11,8 @@ const { User } = require("@/models");
 const strongPasswordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
+const vietnamesePhoneRegex =
+    /^(\+84|84|0)(3[2-9]|5[2689]|7[06-9]|8[1-689]|9[0-46-9])[0-9]{7}$/;
 const register = [
     checkSchema({
         email: {
@@ -58,6 +60,61 @@ const register = [
             matches: {
                 options: [/^[\p{L} ]+$/u],
                 errorMessage: "Tên chỉ được chứa chữ cái và dấu cách",
+            },
+        },
+        phone: {
+            notEmpty: {
+                errorMessage: "Số điện thoại không được để trống",
+            },
+            custom: {
+                options: async (value) => {
+                    // Remove all spaces and special characters except + for validation
+                    const cleanPhone = value.replace(/[\s\-\.]/g, "");
+
+                    // Check format
+                    if (!vietnamesePhoneRegex.test(cleanPhone)) {
+                        throw new Error(
+                            "Số điện thoại không đúng định dạng. VD: 0987654321, +84987654321"
+                        );
+                    }
+
+                    // Normalize phone number for database check
+                    let normalizedPhone = cleanPhone;
+                    if (cleanPhone.startsWith("+84")) {
+                        normalizedPhone = "0" + cleanPhone.substring(3);
+                    } else if (cleanPhone.startsWith("84")) {
+                        normalizedPhone = "0" + cleanPhone.substring(2);
+                    }
+
+                    // Check if phone already exists in database
+                    const existingUser = await User.findOne({
+                        where: { phone: normalizedPhone },
+                    });
+
+                    if (existingUser) {
+                        throw new Error("Số điện thoại đã được sử dụng");
+                    }
+
+                    return true;
+                },
+            },
+            // Sanitizer to normalize phone format
+            customSanitizer: {
+                options: (value) => {
+                    if (!value) return value;
+
+                    // Remove all spaces and special characters except +
+                    const cleanPhone = value.replace(/[\s\-\.]/g, "");
+
+                    // Normalize to format starting with 0
+                    if (cleanPhone.startsWith("+84")) {
+                        return "0" + cleanPhone.substring(3);
+                    } else if (cleanPhone.startsWith("84")) {
+                        return "0" + cleanPhone.substring(2);
+                    }
+
+                    return cleanPhone;
+                },
             },
         },
     }),

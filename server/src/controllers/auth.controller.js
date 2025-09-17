@@ -2,14 +2,19 @@ const authService = require("@/services/auth.service");
 const throw404 = require("@/utils/throw404");
 
 exports.register = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
     try {
-        if (!name || !email || !password) {
+        if (!name || !email || !password || !phone) {
             return res.error(400, "Tên, email và mật khẩu là bắt buộc");
         }
 
-        const response = await authService.register(name, email, password);
+        const response = await authService.register(
+            name,
+            email,
+            password,
+            phone
+        );
         return res.success(
             201,
             response,

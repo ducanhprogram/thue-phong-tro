@@ -1,4 +1,12 @@
 import { get } from "@/utils/httpRequest";
+
+import axios from "axios";
+
+console.log("Cloudinary Config:", {
+    cloudName: import.meta.env.VITE_CLOUD_NAME,
+    uploadPreset: import.meta.env.VITE_UPLOAD_PRESET,
+});
+
 export const getPosts = async () => {
     try {
         const response = await get("/posts");
@@ -65,6 +73,37 @@ export const getNewPosts = async () => {
             error.response?.data?.error ||
             error.message ||
             "Lấy danh sách bài viết mới nhất thất bại";
+        throw new Error(errorMessage);
+    }
+};
+
+export const uploadMultipleImages = async (imageFiles) => {
+    try {
+        const uploadPromises = imageFiles.map(async (file) => {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", import.meta.env.VITE_UPLOAD_PRESET);
+            // formData.append("cloud_name", import.meta.env.VITE_CLOUD_NAME);
+
+            return axios({
+                method: "post",
+                url: `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUD_NAME}/image/upload`,
+                data: formData,
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+        });
+
+        const responses = await Promise.all(uploadPromises);
+        return responses.map((response) => response.data);
+    } catch (error) {
+        console.log("Error upload multiple images service", error);
+        const errorMessage =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Upload nhiều ảnh thất bại";
         throw new Error(errorMessage);
     }
 };

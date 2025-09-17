@@ -79,6 +79,25 @@ class UserService {
         }
     }
 
+    async findByPhone(phone, options = {}) {
+        try {
+            const { attributes = { exclude: ["password"] }, include = [] } =
+                options;
+
+            const user = await User.findOne({
+                where: { phone },
+                attributes,
+                include,
+            });
+
+            return user; // Trả về trực tiếp user hoặc null
+        } catch (error) {
+            throw new Error(
+                `Lỗi khi tìm người dùng theo số điện thoại: ${error.message}`
+            );
+        }
+    }
+
     /**
      * Tạo user mới
      */

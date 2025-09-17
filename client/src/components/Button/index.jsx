@@ -5,11 +5,11 @@ const Button = ({ text, textColor, bgColor, isIcons: Icon, onClick }) => {
     return (
         <button
             type="button"
-            className={`py-2 px-4 flex items-center gap-2 ${textColor} ${bgColor} outline-none rounded-md hover:underline cursor-pointer`}
+            className={`py-2 px-4 flex items-center gap-1 ${textColor} ${bgColor} outline-none rounded-md hover:underline cursor-pointer`}
             onClick={onClick}
         >
             {text}
-            {Icon && <Icon size={20} />}
+            {Icon && <Icon size={16} />}
         </button>
     );
 };
