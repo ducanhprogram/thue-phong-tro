@@ -14,6 +14,12 @@ module.exports = (sequelize, DataTypes) => {
     }
     Price.init(
         {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+                allowNull: false,
+            },
             code: DataTypes.STRING,
             value: DataTypes.STRING,
             order: DataTypes.INTEGER,

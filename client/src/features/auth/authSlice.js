@@ -138,7 +138,7 @@ const authSlice = createSlice({
             // Xóa localStorage
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
-            localStorage.removeItem("persist:auth"); // Xóa Redux Persist data
+            localStorage.removeItem("persist:auth");
         },
     },
     extraReducers: (builder) => {

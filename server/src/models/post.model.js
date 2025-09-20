@@ -24,6 +24,11 @@ module.exports = (sequelize, DataTypes) => {
                 targetKey: "id",
                 as: "user",
             });
+            Post.belongsTo(models.Overview, {
+                foreignKey: "overviewId",
+                targetKey: "id",
+                as: "overview",
+            });
         }
     }
     Post.init(
@@ -37,14 +42,14 @@ module.exports = (sequelize, DataTypes) => {
             star: DataTypes.STRING,
             labelCode: DataTypes.STRING,
             address: DataTypes.STRING,
-            attributesId: DataTypes.TEXT,
+            attributesId: DataTypes.INTEGER,
             categoryCode: DataTypes.STRING,
             priceCode: DataTypes.STRING,
             areaCode: DataTypes.STRING,
             description: DataTypes.TEXT,
             userId: DataTypes.INTEGER,
-            overviewId: DataTypes.STRING,
-            imagesId: DataTypes.STRING,
+            overviewId: DataTypes.INTEGER,
+            imagesId: DataTypes.INTEGER,
             priceNumber: DataTypes.FLOAT,
             areaNumber: DataTypes.FLOAT,
             provinceCode: DataTypes.STRING,

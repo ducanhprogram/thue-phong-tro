@@ -11,6 +11,5 @@ module.exports = {
     RESETPASSWORD_JWT_EXPIRES_IN:
         parseInt(process.env.RESETPASSWORD_JWT_EXPIRES_IN) || 300, // 5 minutes
     TOKEN_TYPE: process.env.TOKEN_TYPE || "Bearer",
-    REFRESH_TOKEN_EXPIRES_IN:
-        parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN) || 604800, // 7 days
+    REFRESH_TOKEN_EXPIRES_IN: parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN), // 7 days
 };

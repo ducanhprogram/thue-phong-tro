@@ -14,6 +14,12 @@ module.exports = (sequelize, DataTypes) => {
     }
     Area.init(
         {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+                allowNull: false,
+            },
             code: DataTypes.STRING,
             value: DataTypes.STRING,
             order: DataTypes.INTEGER,
@@ -21,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
         {
             sequelize,
             modelName: "Area",
+            timestamps: true,
+            createdAt: "createdAt",
+            updatedAt: "updatedAt",
+            charset: "utf8",
+            collate: "utf8_general_ci",
         }
     );
     return Area;

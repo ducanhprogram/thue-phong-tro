@@ -1,18 +1,34 @@
-import { fetchProvinces } from "@/features/province/provinceSlice";
+import { fetchProvinces, fetchProvincesOld } from "@/features/province/provinceSlice";
 import icons from "@/utils/icons";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import styles from "./Modal.module.scss";
 const { MdArrowBack } = icons;
 
 const Modal = ({ onClose, content, name, handleSubmit, selectedValue }) => {
     const dispatch = useDispatch();
 
+    const { provincesOld } = useSelector((state) => state.provinces);
+
     useEffect(() => {
+        // Gọi API nội bộ để lấy provinces
+
         if (name === "provinces") {
-            dispatch(fetchProvinces());
+            dispatch(fetchProvincesOld());
         }
     }, [dispatch, name]);
+
+    // useEffect(() => {
+    //     if (name === "provinces") {
+    //         dispatch(fetchProvinces());
+    //     }
+    // }, [dispatch, name]);
+
+    useEffect(() => {
+        console.log("Modal - name:", name);
+        console.log("Modal - content:", content);
+        console.log("Modal - selectedValue:", selectedValue);
+    }, [name, content, selectedValue]);
 
     const handleOverlayClick = (e) => {
         e.stopPropagation();
@@ -138,7 +154,7 @@ const Modal = ({ onClose, content, name, handleSubmit, selectedValue }) => {
                                                 isSelected ? "text-blue-700" : "text-gray-700 group-hover:text-blue-700"
                                             }`}
                                         >
-                                            {name === "provinces" && (item.name || item.value)}
+                                            {name === "provinces" && item?.value}
                                             {name === "category" && (item.header || item.value)}
                                             {name === "prices" && item.value}
                                             {name === "areas" && item.value}

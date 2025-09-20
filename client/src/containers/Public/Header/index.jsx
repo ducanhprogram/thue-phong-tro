@@ -76,7 +76,7 @@ const Header = () => {
     }, []);
 
     return (
-        <div className="w-full bg-white mb-3">
+        <div className="w-full bg-white mb-3 fixed top-0 left-0 right-0 z-50">
             <div className={`mx-auto flex items-center justify-between ${(styles.border_bottom, styles.header)}`}>
                 <Link to={"/"}>
                     <img

@@ -27,11 +27,6 @@ const RelatedPost = () => {
         <div className="w-full bg-white rounded-md p-4">
             <h3 className="font-medium text-sm">Tin mới đăng</h3>
             <div className="w-full">
-                <RecentItem
-                    title="Cho thuê nhà mặt tiền Kd p. Phú Thọ Hòa,Tân Phú dtsd 60 m2 chỉ 7triệu"
-                    price="40 triệu/tháng"
-                    createdAt="Hôm nay"
-                />
                 {newPosts?.length > 0 &&
                     newPosts.map((post) => {
                         return (

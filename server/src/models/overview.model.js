@@ -8,7 +8,11 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            // define association here
+            Overview.hasMany(models.Post, {
+                foreignKey: "overviewId",
+                sourceKey: "id",
+                as: "posts",
+            });
         }
     }
     Overview.init(
@@ -24,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
             target: DataTypes.STRING,
             bonus: DataTypes.STRING,
             created: DataTypes.DATE,
-            expire: DataTypes.DATE,
+            expired: DataTypes.DATE,
         },
         {
             sequelize,

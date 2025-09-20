@@ -9,10 +9,12 @@ import {
     searchProvinces,
     searchDistricts,
     searchWards,
+    getProvincesOld,
 } from "@/services/provinceService";
 
 const initialState = {
     provinces: [],
+    provincesOld: [],
     districts: [],
     wards: [],
     selectedProvince: null,
@@ -25,6 +27,7 @@ const initialState = {
     },
     loading: {
         provinces: false,
+        provincesOld: false,
         districts: false,
         wards: false,
         search: false,
@@ -39,6 +42,22 @@ export const fetchProvinces = createAsyncThunk("province/fetchProvinces", async 
         return response.results || [];
     } catch (error) {
         console.error("Error in fetchProvinces thunk:", error);
+        return rejectWithValue({
+            message: error.message,
+            statusCode: error.statusCode || 500,
+        });
+    }
+});
+
+//cũ
+export const fetchProvincesOld = createAsyncThunk("province/fetchProvincesOld", async (_, { rejectWithValue }) => {
+    try {
+        const response = await getProvincesOld(); // Sử dụng API nội bộ của bạn
+        // Kiểm tra cấu trúc response từ API nội bộ của bạn
+        // Có thể cần điều chỉnh tùy theo format response của bạn
+        return response.data;
+    } catch (error) {
+        console.error("Error in fetchProvincesOld thunk:", error);
         return rejectWithValue({
             message: error.message,
             statusCode: error.statusCode || 500,
@@ -171,6 +190,10 @@ const provinceSlice = createSlice({
         // Clear all data
         clearAllProvinceData: (state) => {
             Object.assign(state, initialState);
+        },
+
+        clearProvincesOld: (state) => {
+            state.provincesOld = [];
         },
 
         // Clear districts when province changes
@@ -308,7 +331,20 @@ const provinceSlice = createSlice({
                 state.loading.districts = false;
                 state.error = action.payload;
             })
-
+            // Fetch provinces Old (API nội bộ) cases
+            .addCase(fetchProvincesOld.pending, (state) => {
+                state.loading.provincesOld = true;
+                state.error = null;
+            })
+            .addCase(fetchProvincesOld.fulfilled, (state, action) => {
+                state.loading.provincesOld = false;
+                state.provincesOld = action.payload;
+                state.error = null;
+            })
+            .addCase(fetchProvincesOld.rejected, (state, action) => {
+                state.loading.provincesOld = false;
+                state.error = action.payload;
+            })
             // Search provinces cases
             .addCase(searchProvincesAsync.pending, (state) => {
                 state.loading.search = true;

@@ -25,7 +25,7 @@ const Home = () => {
     }, [profileUser]);
 
     return (
-        <div className={clsx(`h-full w-full`)}>
+        <div className={clsx(`h-full w-full pt-32`)}>
             <Header />
             {isLoggedIn && <Search />}
             <main className="flex flex-col items-center justify-center">

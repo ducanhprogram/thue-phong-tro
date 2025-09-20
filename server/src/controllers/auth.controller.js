@@ -65,14 +65,14 @@ exports.verifyEmail = async (req, res) => {
 };
 
 exports.refreshToken = async (req, res) => {
-    const { refresh_token } = req.body;
+    const { refreshToken } = req.body;
 
     try {
-        if (!refresh_token) {
+        if (!refreshToken) {
             return res.error(400, "Refresh token là bắt buộc");
         }
 
-        const response = await authService.generateTokens(refresh_token);
+        const response = await authService.generateTokens(refreshToken);
         return res.success(200, response, "Làm mới token thành công");
     } catch (error) {
         const statusCode = error.statusCode || 500;
@@ -83,10 +83,10 @@ exports.refreshToken = async (req, res) => {
 };
 
 exports.logout = async (req, res) => {
-    const { refresh_token } = req.body;
+    const { refreshToken } = req.body;
 
     try {
-        const response = await authService.logout(refresh_token);
+        const response = await authService.logout(refreshToken);
         return res.success(200, response);
     } catch (error) {
         const statusCode = error.statusCode || 500;

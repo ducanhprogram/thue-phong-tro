@@ -67,3 +67,69 @@ exports.getNewPosts = async (req, res) => {
         return res.error(statusCode, message);
     }
 };
+
+exports.createNewPost = async (req, res) => {
+    try {
+        const {
+            categoryCode,
+            title,
+            priceNumber,
+            areaNumber,
+            images,
+            address,
+            priceCode,
+            areaCode,
+            description,
+            target,
+            province,
+            ...payload
+        } = req.body;
+
+        if (
+            !categoryCode ||
+            !title ||
+            !priceNumber ||
+            !areaNumber ||
+            !address ||
+            !description
+        ) {
+            return res.error(400, "Thiếu thông tin bắt buộc để tạo bài viết");
+        }
+        const { id } = req.user;
+        if (!id) {
+            return res.error(401, "Bạn chưa đăng nhập hoặc token không hợp lệ");
+        }
+
+        const priceNum = parseFloat(priceNumber);
+        const areaNum = parseFloat(areaNumber);
+        if (isNaN(areaNum) || areaNum < 0) {
+            return res.error(
+                400,
+                "Diện tích phải là số dương và lớn hơn không"
+            );
+        }
+
+        if (isNaN(priceNum) || priceNum <= 0) {
+            return res.error(400, "Giá phải là số dương");
+        }
+
+        if (!Array.isArray(images) || images.length === 0) {
+            return res.error(400, "Cần ít nhất 1 hình ảnh");
+        }
+
+        if (title.length > 255) {
+            return res.error(400, "Tiêu đề không được vượt quá 255 ký tự");
+        }
+
+        if (description.length > 3000) {
+            return res.error(400, "Mô tả không được vượt quá 3000 ký tự");
+        }
+
+        const response = await postService.createNewPost(req.body, id);
+        return res.success(200, response, "Tạo bài viết thành công");
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        const message = error.message || "Lỗi khi tạo bài viết mới";
+        return res.error(statusCode, message);
+    }
+};

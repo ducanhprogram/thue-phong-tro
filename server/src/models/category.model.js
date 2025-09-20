@@ -22,7 +22,11 @@ module.exports = (sequelize, DataTypes) => {
             value: DataTypes.STRING,
             header: DataTypes.STRING,
             subheader: DataTypes.STRING,
-            slug: DataTypes.STRING,
+            slug: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                unique: true,
+            },
         },
         {
             sequelize,

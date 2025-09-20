@@ -37,14 +37,12 @@ const Items = ({ images, user, title, star, description, attributes, address, cr
     // Hàm điều hướng đến trang chi tiết
     const handleNavigateToDetail = () => {
         const titleSlug = createSlug(title);
+        window.scrollTo({ top: 0 });
         navigate(`/chi-tiet/${titleSlug}/${id}`);
     };
 
     return (
-        <div
-            className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mt-3"
-            onClick={() => window.scrollTo({ top: 0 })}
-        >
+        <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mt-3">
             {/* Badge cho thuê nhanh */}
             <div className="relative">
                 <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold z-10">

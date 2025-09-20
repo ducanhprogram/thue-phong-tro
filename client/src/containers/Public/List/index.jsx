@@ -7,15 +7,15 @@ import { MessageSquareOff } from "lucide-react";
 import Pagination from "@/containers/Public/Pagination";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { fetchPostsLimit, clearError } from "@/features/posts/postSlice";
 import { useCallback } from "react";
+import formatDateTime from "@/utils/formatDateTime";
 
 const List = ({ categoryCode }) => {
     const dispatch = useDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
-    const { paginatedPosts, pagination, loading, error } = useSelector((state) => state.posts);
-
+    const { posts, paginatedPosts, pagination, loading, error } = useSelector((state) => state.posts);
     const pageFromUrl = parseInt(searchParams.get("page")) || 1;
     const priceCodeFromUrl = searchParams.get("priceCode") || null;
     const areaCodeFromUrl = searchParams.get("areaCode") || null;
@@ -24,8 +24,9 @@ const List = ({ categoryCode }) => {
     const [hasSearched, setHasSearched] = useState(false);
     const limit = 10;
 
-    // Kiểm tra xem có filter nào được áp dụng không
+    console.log(posts[posts.length - 1]?.createdAt);
 
+    // Kiểm tra xem có filter nào được áp dụng không
     const hasActiveFilters = useCallback(() => {
         return priceCodeFromUrl || areaCodeFromUrl || provinceCodeFromUrl;
     }, [priceCodeFromUrl, areaCodeFromUrl, provinceCodeFromUrl]);
@@ -92,7 +93,10 @@ const List = ({ categoryCode }) => {
                             Xóa bộ lọc
                         </button>
                     )}
-                    <span className="text-sm text-gray-500">Cập nhật: 12:09 25/08/2025</span>
+
+                    <span className="text-sm text-gray-500">
+                        Cập nhật: {formatDateTime(posts[posts.length - 1]?.createdAt)}
+                    </span>
                 </div>
             </div>
 

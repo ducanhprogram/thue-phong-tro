@@ -17,6 +17,7 @@ const ItemSidebar = ({ title, content, isDouble = false }) => {
         // Xác định loại bộ lọc (priceCode hoặc areaCode, hoặc none cho categories)
         const filterType = title === "Xem theo giá" ? "priceCode" : title === "Xem theo diện tích" ? "areaCode" : null;
 
+        window.scrollTo({ top: 0, behavior: "smooth" });
         if (filterType) {
             // Nếu chọn "Tất cả" (code === null) thì xóa bộ lọc
             if (code === null) {

@@ -24,8 +24,14 @@ module.exports = (sequelize, DataTypes) => {
             },
             price: DataTypes.STRING,
             acreage: DataTypes.STRING,
-            published: DataTypes.STRING,
-            hashtag: DataTypes.STRING,
+            published: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
+            hashtag: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
         },
         {
             sequelize,

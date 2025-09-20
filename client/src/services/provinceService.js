@@ -1,4 +1,5 @@
 // src/services/provinceService.js
+import { get } from "@/utils/httpRequest";
 import axios from "axios";
 
 const VNAPPMOB_API_BASE = "https://api.vnappmob.com/api/v2/province";
@@ -24,6 +25,17 @@ vnappMobRequest.interceptors.response.use(
         });
     },
 );
+
+export const getProvincesOld = async () => {
+    try {
+        const response = await get("/province");
+        return response;
+    } catch (error) {
+        console.error("Error get provinces old provinces:", error);
+        const errorMessage = error.message || "Lấy danh sách tỉnh thành thất bại";
+        throw new Error(errorMessage);
+    }
+};
 
 // Lấy danh sách tỉnh thành
 export const getProvinces = async () => {

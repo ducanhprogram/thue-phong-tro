@@ -18,7 +18,9 @@ const Search = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    const { provinces } = useSelector((state) => state.provinces);
+    // const { provinces } = useSelector((state) => state.provinces);
+    const { provincesOld } = useSelector((state) => state.provinces);
+
     const { areas } = useSelector((state) => state.areas);
     const { prices, categories } = useSelector((state) => state.app);
     const [queries, setQueries] = useState({});
@@ -44,13 +46,13 @@ const Search = () => {
     const getSelectedValue = () => {
         switch (name) {
             case "category":
-                return queries.category;
+                return queries.category || null;
             case "provinces":
-                return queries.provinces;
+                return queries.provinces || null;
             case "prices":
-                return queries.prices;
+                return queries.prices || null;
             case "areas":
-                return queries.areas;
+                return queries.areas || null;
             default:
                 return null;
         }
@@ -138,7 +140,7 @@ const Search = () => {
                     IconAfter={<BsChevronRight color="rgb(156, 163, 175)" />}
                     text={getDisplayText("provinces")}
                     defaultText={"Toàn quốc"}
-                    onClick={() => handleItemClick(provinces, "provinces")}
+                    onClick={() => handleItemClick(provincesOld, "provinces")}
                 />
                 <SearchItem
                     IconBefore={<TbReportMoney />}

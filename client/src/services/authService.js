@@ -88,6 +88,9 @@ export const logout = async () => {
         localStorage.removeItem("persist:auth");
         return response;
     } catch (error) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("persist:auth");
         throw new Error(error.message || "Đăng xuất thất bại");
     }
 };
@@ -101,6 +104,9 @@ export const logoutAll = async () => {
         localStorage.removeItem("refreshToken");
         return response;
     } catch (error) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("persist:auth");
         throw new Error(error.message || "Đăng xuất tất cả thiết bị thất bại");
     }
 };
@@ -111,6 +117,14 @@ export const getMe = async () => {
         const response = await get("/auth/me");
         return response;
     } catch (error) {
+        // Nếu user không tồn tại hoặc bị xóa, server sẽ trả về 401 hoặc 404
+        if (error.status === 401 || error.status === 404 || error.statusCode === 401 || error.statusCode === 404) {
+            // Xóa toàn bộ dữ liệu auth local
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("persist:auth");
+            throw new Error("USER_NOT_FOUND");
+        }
         throw new Error(error.message || "Lấy thông tin người dùng thất bại");
     }
 };

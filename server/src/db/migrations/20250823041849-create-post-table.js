@@ -1,4 +1,4 @@
-// POST TABLE MIGRATION
+// POST TABLE MIGRATION - FIXED VERSION
 "use strict";
 
 /** @type {import('sequelize-cli').Migration} */
@@ -6,13 +6,14 @@ module.exports = {
     async up(queryInterface, Sequelize) {
         await queryInterface.createTable("Posts", {
             id: {
-                type: Sequelize.INTEGER, // ✅ Chỉ định rõ độ dài 36
+                type: Sequelize.INTEGER,
                 allowNull: false,
                 primaryKey: true,
                 autoIncrement: true,
             },
             title: {
                 type: Sequelize.STRING,
+                allowNull: false,
             },
             star: {
                 type: Sequelize.STRING,
@@ -23,9 +24,16 @@ module.exports = {
             },
             address: {
                 type: Sequelize.STRING,
+                allowNull: false,
             },
             attributesId: {
-                type: Sequelize.STRING(36), // ✅ Sửa từ TEXT thành STRING(36)
+                type: Sequelize.INTEGER,
+                references: {
+                    model: "Attributes",
+                    key: "id",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
             priceCode: {
                 type: Sequelize.STRING,
@@ -35,9 +43,11 @@ module.exports = {
             },
             categoryCode: {
                 type: Sequelize.STRING,
+                allowNull: false,
             },
             description: {
                 type: Sequelize.TEXT,
+                allowNull: false,
             },
             userId: {
                 type: Sequelize.INTEGER.UNSIGNED,
@@ -50,25 +60,33 @@ module.exports = {
                 onDelete: "CASCADE",
             },
             overviewId: {
-                type: Sequelize.STRING(36),
+                type: Sequelize.INTEGER,
+                references: {
+                    model: "Overviews",
+                    key: "id",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
             imagesId: {
-                type: Sequelize.STRING(36),
-            },
-            areaCode: {
-                type: Sequelize.STRING,
-            },
-            priceCode: {
-                type: Sequelize.STRING,
+                type: Sequelize.INTEGER,
+                references: {
+                    model: "Images",
+                    key: "id",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
             provinceCode: {
                 type: Sequelize.STRING,
             },
             priceNumber: {
                 type: Sequelize.FLOAT,
+                defaultValue: 0,
             },
             areaNumber: {
                 type: Sequelize.FLOAT,
+                defaultValue: 0,
             },
             createdAt: {
                 allowNull: false,

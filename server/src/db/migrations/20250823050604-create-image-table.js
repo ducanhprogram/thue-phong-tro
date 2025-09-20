@@ -11,7 +11,7 @@ module.exports = {
                 autoIncrement: true,
             },
             image: {
-                type: Sequelize.TEXT, // JSON string của array images
+                type: Sequelize.TEXT,
             },
             createdAt: {
                 allowNull: false,

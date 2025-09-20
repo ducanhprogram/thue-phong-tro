@@ -79,14 +79,14 @@ const ThongTinMoTa = ({ payload, setPayload }) => {
                             small={"Nhập đầy đủ số, ví dụ 1 triệu thì nhập là 1000000"}
                             label={"Giá cho thuê"}
                             unit={"đồng"}
-                            value={payload.priceNumber}
+                            value={+payload.priceNumber}
                             setValue={setPayload}
                         />
                         <InputFormV2
                             name={"areaNumber"}
                             label={"Diện tích"}
                             unit={"m2"}
-                            value={payload.areaNumber}
+                            value={+payload.areaNumber}
                             setValue={setPayload}
                         />
                         <Select

@@ -1,11 +1,6 @@
-import { get } from "@/utils/httpRequest";
+import { get, post } from "@/utils/httpRequest";
 
 import axios from "axios";
-
-console.log("Cloudinary Config:", {
-    cloudName: import.meta.env.VITE_CLOUD_NAME,
-    uploadPreset: import.meta.env.VITE_UPLOAD_PRESET,
-});
 
 export const getPosts = async () => {
     try {
@@ -96,7 +91,7 @@ export const uploadMultipleImages = async (imageFiles) => {
         });
 
         const responses = await Promise.all(uploadPromises);
-        return responses.map((response) => response.data);
+        return responses.map((response) => response);
     } catch (error) {
         console.log("Error upload multiple images service", error);
         const errorMessage =
@@ -104,6 +99,21 @@ export const uploadMultipleImages = async (imageFiles) => {
             error.response?.data?.error ||
             error.message ||
             "Upload nhiều ảnh thất bại";
+        throw new Error(errorMessage);
+    }
+};
+
+export const apiCreatePost = async (payload) => {
+    try {
+        const response = await post("/posts/create-new-post", payload);
+        return response;
+    } catch (error) {
+        console.log("Error create new post service", error);
+        const errorMessage =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Tạo bài viết mới thất bại";
         throw new Error(errorMessage);
     }
 };

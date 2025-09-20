@@ -6,7 +6,7 @@ module.exports = {
         await queryInterface.createTable("Attributes", {
             // ✅ Tên bảng phải khớp với model
             id: {
-                type: Sequelize.INTEGER, // ✅ Chỉ định rõ độ dài 36
+                type: Sequelize.INTEGER,
                 allowNull: false,
                 primaryKey: true,
                 autoIncrement: true,
