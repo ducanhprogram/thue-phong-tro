@@ -3,7 +3,7 @@ require("module-alias/register");
 const queueService = require("@/services/queue.service");
 const sendVerifyEmailJob = require("@/jobs/sendVerifyEmailJob");
 const sendResetPasswordEmailJob = require("@/jobs/sendResetPasswordEmailJob");
-const sendPasswordChangeEmailJob = require("@/jobs/sendPasswordChangeEmailJob");
+const sendPasswordChangedEmailJob = require("@/jobs/sendPasswordChangedEmailJob");
 
 // Cấu hình retry
 const MAX_RETRIES = 3;
@@ -13,7 +13,7 @@ const WORKER_INTERVAL = 1000; // 1 second
 const handlers = {
     sendVerifyEmailJob,
     sendResetPasswordEmailJob,
-    sendPasswordChangeEmailJob,
+    sendPasswordChangedEmailJob,
 };
 
 async function jobProcess(job) {
@@ -39,16 +39,23 @@ async function jobProcess(job) {
         // Thực hiện job
         await handler(job);
 
-        // Update status thành completed
+        // Update status thành completed - RESET retries về 0 khi thành công
         await queueService.update(job.id, {
             status: "completed",
+            retries: 0, // Reset retries khi job thành công
+            error_message: null, // Clear error message
             updatedAt: new Date(),
         });
         console.log(`Job ${job.id} completed successfully`);
     } catch (error) {
         console.error(`Job ${job.id} failed:`, error.message);
 
-        const newRetries = (job.retries || 0) + 1;
+        const currentRetries = job.retries || 0;
+        const newRetries = currentRetries + 1;
+
+        console.log(
+            `Job ${job.id} failed. Current retries: ${currentRetries}, New retries: ${newRetries}, Max: ${MAX_RETRIES}`
+        );
 
         if (newRetries <= MAX_RETRIES) {
             // Còn lượt retry, schedule lại sau một khoảng thời gian
@@ -60,11 +67,13 @@ async function jobProcess(job) {
                 try {
                     await queueService.update(job.id, {
                         status: "pending",
-                        retries: newRetries,
+                        retries: newRetries, // Tăng retries lên
                         error_message: error.message,
                         updatedAt: new Date(),
                     });
-                    console.log(`Job ${job.id} rescheduled for retry`);
+                    console.log(
+                        `Job ${job.id} rescheduled for retry with retries: ${newRetries}`
+                    );
                 } catch (updateError) {
                     console.error(
                         `Failed to reschedule job ${job.id}:`,
@@ -76,10 +85,13 @@ async function jobProcess(job) {
             // Hết lượt retry, đánh dấu là reject
             await queueService.update(job.id, {
                 status: "reject",
+                retries: newRetries, // Vẫn lưu số lần retry cuối cùng
                 error_message: error.message,
                 updatedAt: new Date(),
             });
-            console.log(`Job ${job.id} rejected after ${MAX_RETRIES} retries`);
+            console.log(
+                `Job ${job.id} permanently rejected after ${MAX_RETRIES} retries. Final retries count: ${newRetries}`
+            );
         }
     }
 }
@@ -94,8 +106,10 @@ async function queueWorker() {
             if (jobs.length > 0) {
                 console.log(`Found ${jobs.length} pending jobs`);
 
-                // Xử lý parallel để tăng performance
-                await Promise.all(jobs.map((job) => jobProcess(job)));
+                // Xử lý tuần tự để tránh race condition với retries
+                for (const job of jobs) {
+                    await jobProcess(job);
+                }
             }
 
             // Chờ trước khi check lần tiếp theo

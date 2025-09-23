@@ -24,8 +24,6 @@ const List = ({ categoryCode }) => {
     const [hasSearched, setHasSearched] = useState(false);
     const limit = 10;
 
-    console.log(posts[posts.length - 1]?.createdAt);
-
     // Kiểm tra xem có filter nào được áp dụng không
     const hasActiveFilters = useCallback(() => {
         return priceCodeFromUrl || areaCodeFromUrl || provinceCodeFromUrl;

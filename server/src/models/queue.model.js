@@ -35,6 +35,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.INTEGER,
                 defaultValue: 0,
             },
+            error_message: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
         },
         {
             sequelize,

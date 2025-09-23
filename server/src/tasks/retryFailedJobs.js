@@ -21,7 +21,6 @@ async function retryFailedJobs() {
             // Reset lại status thành "pending" để queue worker xử lý lại
             await queueService.update(job.id, {
                 status: "pending",
-                retries_count: 0,
                 updated_at: new Date(),
             });
             retriedCount++;

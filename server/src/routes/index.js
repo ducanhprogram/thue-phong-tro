@@ -8,8 +8,10 @@ const postRoute = require("./post.route");
 const priceRoute = require("./price.route");
 const areaRoute = require("./area.route");
 const provinceRoute = require("./province.route");
+const userRoute = require("./user.route");
 
 router.use("/auth", authRoute);
+router.use("/users", userRoute);
 router.use("/insert", insertRoute);
 router.use("/category", categoryRoute);
 router.use("/posts", postRoute);

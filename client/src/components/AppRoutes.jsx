@@ -11,6 +11,9 @@ import VerifyEmail from "@/pages/VerifyEmail";
 import { Route, Routes } from "react-router-dom";
 import Dashboard from "@/containers/Protected/Dashboard";
 import CreatePost from "@/containers/Protected/CreatePost";
+import ManagePost from "@/containers/Protected/ManagePost";
+import UpdatePost from "@/containers/Protected/UpdatePost";
+import Profile from "@/containers/Protected/Profile";
 
 function AppRoutes() {
     return (
@@ -33,6 +36,8 @@ function AppRoutes() {
 
             <Route path={config.routes.dashboard} element={<Dashboard />}>
                 <Route path={config.routes.createPost} element={<CreatePost />} />
+                <Route path={config.routes.ManagePost} element={<ManagePost />}></Route>
+                <Route path={config.routes.editProfile} element={<Profile />}></Route>
             </Route>
         </Routes>
     );

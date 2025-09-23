@@ -1,4 +1,4 @@
-// src/components/Address/index.jsx
+// Address.jsx
 import { memo, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -16,13 +16,11 @@ import {
     clearSearchResults,
 } from "@/features/province/provinceSlice";
 import SelectForm from "../SelectForm";
-import InputReadOnly from "../InputReadOnly";
 import { useDebounce } from "@/hooks/useDebounce";
 
 const Address = ({ payload, setPayload }) => {
     const dispatch = useDispatch();
     const [exactAddress, setExactAddress] = useState(payload.exactAddress || "");
-
     const debouncedExactAddress = useDebounce(exactAddress, 1000);
 
     const {
@@ -37,19 +35,84 @@ const Address = ({ payload, setPayload }) => {
         error,
     } = useSelector((state) => state.provinces);
 
-    // Load provinces khi component mount
+    // Load provinces when component mounts
     useEffect(() => {
         if (provinces.length === 0) {
             dispatch(fetchProvinces());
         }
     }, [dispatch, provinces.length]);
 
-    // Cập nhật exactAddress từ payload
+    // Initialize province, district, and ward from payload
+    useEffect(() => {
+        if (payload.province && provinces.length > 0 && !selectedProvince) {
+            const foundProvince = provinces.find((p) => {
+                const cleanProvinceName = p.province_name.replace("Thành phố ", "").replace("Tỉnh ", "").trim();
+                const cleanPayloadProvince = payload.province.replace("Thành phố ", "").replace("Tỉnh ", "").trim();
+                return cleanProvinceName === cleanPayloadProvince || p.province_name === payload.province;
+            });
+
+            if (foundProvince) {
+                dispatch(setSelectedProvince(foundProvince));
+                dispatch(fetchDistricts(foundProvince.province_id));
+            }
+        }
+    }, [payload.province, provinces, selectedProvince, dispatch]);
+
+    // Initialize district when districts are available
+    useEffect(() => {
+        if (payload.district && districts.length > 0 && selectedProvince && !selectedDistrict && !loading.districts) {
+            const foundDistrict = districts.find((d) => {
+                const cleanDistrictName = d.district_name
+                    .replace("Quận ", "")
+                    .replace("Huyện ", "")
+                    .replace("Thị xã ", "")
+                    .replace("Thành phố ", "")
+                    .trim();
+                const cleanPayloadDistrict = payload.district
+                    .replace("Quận ", "")
+                    .replace("Huyện ", "")
+                    .replace("Thị xã ", "")
+                    .replace("Thành phố ", "")
+                    .trim();
+                return cleanDistrictName === cleanPayloadDistrict || d.district_name === payload.district;
+            });
+
+            if (foundDistrict) {
+                dispatch(setSelectedDistrict(foundDistrict));
+                dispatch(fetchWards(foundDistrict.district_id));
+            }
+        }
+    }, [payload.district, districts, selectedProvince, selectedDistrict, loading.districts, dispatch]);
+
+    // Initialize ward when wards are available
+    useEffect(() => {
+        if (payload.ward && wards.length > 0 && selectedDistrict && !selectedWard && !loading.wards) {
+            const foundWard = wards.find((w) => {
+                const cleanWardName = w.ward_name
+                    .replace("Phường ", "")
+                    .replace("Xã ", "")
+                    .replace("Thị trấn ", "")
+                    .trim();
+                const cleanPayloadWard = payload.ward
+                    .replace("Phường ", "")
+                    .replace("Xã ", "")
+                    .replace("Thị trấn ", "")
+                    .trim();
+                return cleanWardName === cleanPayloadWard || w.ward_name === payload.ward;
+            });
+
+            if (foundWard) {
+                dispatch(setSelectedWard(foundWard));
+            }
+        }
+    }, [payload.ward, wards, selectedDistrict, selectedWard, loading.wards, dispatch]);
+
+    // Update exactAddress from payload
     useEffect(() => {
         setExactAddress(payload.exactAddress || "");
     }, [payload.exactAddress]);
 
-    // Xử lý chọn tỉnh/thành phố
+    // Handle province change
     const handleProvinceChange = (province) => {
         dispatch(setSelectedProvince(province));
         if (province && province.province_id) {
@@ -60,7 +123,7 @@ const Address = ({ payload, setPayload }) => {
         dispatch(clearSearchResults());
     };
 
-    // Xử lý chọn quận/huyện
+    // Handle district change
     const handleDistrictChange = (district) => {
         dispatch(setSelectedDistrict(district));
         if (district && district.district_id) {
@@ -71,13 +134,13 @@ const Address = ({ payload, setPayload }) => {
         dispatch(clearSearchResults());
     };
 
-    // Xử lý chọn phường/xã
+    // Handle ward change
     const handleWardChange = (ward) => {
         dispatch(setSelectedWard(ward));
         dispatch(clearSearchResults());
     };
 
-    // Xử lý tìm kiếm tỉnh/thành phố
+    // Handle search for provinces
     const handleProvinceSearch = (searchTerm) => {
         if (searchTerm.trim()) {
             dispatch(searchProvincesAsync(searchTerm));
@@ -86,7 +149,7 @@ const Address = ({ payload, setPayload }) => {
         }
     };
 
-    // Xử lý tìm kiếm quận/huyện
+    // Handle search for districts
     const handleDistrictSearch = (searchTerm) => {
         if (searchTerm.trim() && selectedProvince) {
             dispatch(
@@ -100,7 +163,7 @@ const Address = ({ payload, setPayload }) => {
         }
     };
 
-    // Xử lý tìm kiếm phường/xã
+    // Handle search for wards
     const handleWardSearch = (searchTerm) => {
         if (searchTerm.trim() && selectedDistrict) {
             dispatch(
@@ -114,12 +177,12 @@ const Address = ({ payload, setPayload }) => {
         }
     };
 
-    // Xử lý thay đổi địa chỉ chính xác
+    // Handle exact address change
     const handleExactAddressChange = (e) => {
         setExactAddress(e.target.value);
     };
 
-    // Tạo địa chỉ đầy đủ
+    // Generate full address
     const getFullAddress = () => {
         const parts = [];
         if (debouncedExactAddress) parts.push(debouncedExactAddress);
@@ -130,6 +193,7 @@ const Address = ({ payload, setPayload }) => {
         return parts.join(", ");
     };
 
+    // Update payload with full address
     useEffect(() => {
         if (setPayload) {
             setPayload((prev) => ({
@@ -154,7 +218,7 @@ const Address = ({ payload, setPayload }) => {
 
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                    {/* Tỉnh/Thành phố */}
+                    {/* Province */}
                     <div className="flex-1 min-w-0">
                         <SelectForm
                             label="Tỉnh/Thành phố"
@@ -170,7 +234,7 @@ const Address = ({ payload, setPayload }) => {
                         />
                     </div>
 
-                    {/* Quận/Huyện */}
+                    {/* District */}
                     <div className="flex-1 min-w-0">
                         <SelectForm
                             label="Quận/Huyện"
@@ -187,7 +251,7 @@ const Address = ({ payload, setPayload }) => {
                         />
                     </div>
 
-                    {/* Phường/Xã */}
+                    {/* Ward */}
                     <div className="flex-1 min-w-0">
                         <SelectForm
                             label="Phường/Xã"
@@ -205,7 +269,7 @@ const Address = ({ payload, setPayload }) => {
                     </div>
                 </div>
 
-                {/* Địa chỉ chính xác */}
+                {/* Exact Address */}
                 <div>
                     <p className="mb-2 mt-3 font-medium">Địa chỉ chính xác</p>
                     <input
@@ -216,7 +280,7 @@ const Address = ({ payload, setPayload }) => {
                         className="border border-gray-300 rounded-md w-full p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
 
-                    {/* Hiển thị địa chỉ đầy đủ */}
+                    {/* Display Full Address */}
                     {getFullAddress() && (
                         <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-md">
                             <p className="text-sm text-gray-600 mb-1">Địa chỉ đầy đủ:</p>

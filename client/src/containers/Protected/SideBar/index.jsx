@@ -3,8 +3,10 @@ import menuSideBar from "@/utils/menuSideBar";
 import { NavLink, useNavigate } from "react-router-dom";
 import { logout as logoutService } from "@/services/authService";
 import { logout } from "@/features/auth/authSlice";
-import { useCallback } from "react";
+import { clearProfile } from "@/features/users/userSlice";
+import { useCallback, useEffect } from "react";
 import { RiLogoutCircleRLine } from "react-icons/ri";
+import { fetchUserProfile } from "@/features/users/userSlice";
 
 const activeStyle = "hover:bg-gray-200 flex  rounded-md items-center gap-2 py-2 font-bold bg-gray-200";
 const notActiceStyle = "hover:bg-gray-200 flex  rounded-md items-center gap-2 py-2 cursor-pointer";
@@ -13,6 +15,17 @@ const SideBar = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { profileUser } = useSelector((state) => state.auth);
+    const { profile } = useSelector((state) => state.user);
+
+    // Lấy thông tin profile khi component mount
+    useEffect(() => {
+        if (profileUser && !profile) {
+            dispatch(fetchUserProfile());
+        }
+    }, [dispatch, profileUser, profile]);
+
+    // Sử dụng profile từ user slice nếu có, fallback về profileUser từ auth
+    const currentUser = profileUser;
 
     // Hàm xử lý đăng xuất
     const handleLogout = useCallback(async () => {
@@ -27,27 +40,31 @@ const SideBar = () => {
             console.error("Logout error:", error);
         } finally {
             // Dù API có lỗi hay không vẫn clear local state
+            dispatch(clearProfile()); // Clear user profile
             dispatch(logout());
             navigate("/");
         }
     }, [dispatch, navigate]);
+
     return (
-        <div className="w-[260px] flex-none p-4 h-full overflow-auto">
+        <div className="w-[260px] flex-none p-4 h-full overflow-auto bg-white border-r border-gray-200">
             <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                     <img
-                        src=" https://phongtro123.com/images/default-user.svg"
+                        src={currentUser?.avatar || "https://phongtro123.com/images/default-user.svg"}
                         alt="avatar"
-                        className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                        className="w-10 h-10 object-cover rounded-full border-2 border-gray-200"
                     />
-                    <div className="flex flex-col justify-center ">
-                        <span className="font-semibold">{profileUser?.name}</span>
-                        <small>{profileUser?.email}</small>
+                    <div className="flex flex-col justify-center flex-1">
+                        <span className="font-semibold text-gray-800 truncate">{currentUser?.name}</span>
+                        <small className="text-gray-500 truncate">{currentUser?.email}</small>
                     </div>
                 </div>
-                <span>
-                    Mã thành viên: <span className="font-medium">{profileUser?.id}</span>
-                </span>
+                <div className="text-center bg-blue-50 p-2 rounded-md">
+                    <span className="text-sm text-blue-700">
+                        Mã thành viên: <span className="font-medium">{currentUser?.id}</span>
+                    </span>
+                </div>
             </div>
             <div className="mt-5 flex flex-col gap-1">
                 {menuSideBar.map((item) => {
@@ -63,7 +80,7 @@ const SideBar = () => {
                     );
                 })}
 
-                <div className={notActiceStyle} onClick={handleLogout}>
+                <div className={`${notActiceStyle} text-red-600 hover:bg-red-50`} onClick={handleLogout}>
                     <RiLogoutCircleRLine /> Thoát
                 </div>
             </div>

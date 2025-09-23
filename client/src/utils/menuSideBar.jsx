@@ -21,12 +21,6 @@ const menuSideBar = [
         path: "/dashboard/sua-thong-tin-ca-nhan",
         icon: <FaUserCog size={"18px"} />,
     },
-    {
-        id: 4,
-        text: "Liên Hệ",
-        path: "/dashboard/lien-he",
-        icon: <FaUserCog size={"18px"} />,
-    },
 ];
 
 export default menuSideBar;

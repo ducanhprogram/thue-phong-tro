@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import { fetchUserProfile } from "@/features/auth/authSlice";
 
 const Home = () => {
-    const { isLoggedIn, profileUser, accessToken } = useSelector((state) => state.auth);
+    const { isLoggedIn, accessToken } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -19,10 +19,6 @@ const Home = () => {
             dispatch(fetchUserProfile());
         }
     }, [dispatch, isLoggedIn, accessToken]);
-
-    useEffect(() => {
-        console.log("Profile user updated:", profileUser);
-    }, [profileUser]);
 
     return (
         <div className={clsx(`h-full w-full pt-32`)}>

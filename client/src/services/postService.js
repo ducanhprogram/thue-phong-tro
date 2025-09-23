@@ -1,6 +1,42 @@
-import { get, post } from "@/utils/httpRequest";
+import { del, get, post, put } from "@/utils/httpRequest";
 
 import axios from "axios";
+
+export const getPostById = async (postId) => {
+    try {
+        const response = await get(`/posts/${postId}`);
+        return response;
+    } catch (error) {
+        console.log("Error get post by id service", error);
+        const errorMessage =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Lấy chi tiết bài viết thất bại";
+        throw new Error(errorMessage);
+    }
+};
+
+export const getRelatedPosts = async (postId, categoryCode, provinceCode, limit = 5) => {
+    try {
+        // Build query params
+        const params = new URLSearchParams();
+        if (categoryCode) params.append("categoryCode", categoryCode);
+        if (provinceCode) params.append("provinceCode", provinceCode);
+        params.append("limit", limit);
+
+        const response = await get(`/posts/${postId}/related?${params.toString()}`);
+        return response;
+    } catch (error) {
+        console.log("Error get related posts service", error);
+        const errorMessage =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Lấy bài viết liên quan thất bại";
+        throw new Error(errorMessage);
+    }
+};
 
 export const getPosts = async () => {
     try {
@@ -114,6 +150,62 @@ export const apiCreatePost = async (payload) => {
             error.response?.data?.error ||
             error.message ||
             "Tạo bài viết mới thất bại";
+        throw new Error(errorMessage);
+    }
+};
+
+export const getPostsLimitAdmin = async (page = 1, limit = 10, query = {}) => {
+    try {
+        // Build query params
+        const params = new URLSearchParams();
+        console.log(page, limit, query);
+        console.log(params);
+        params.append("page", page);
+        params.append("limit", limit);
+
+        // Thêm các query params khác nếu có
+        Object.keys(query).forEach((key) => {
+            if (query[key]) {
+                params.append(key, query[key]);
+            }
+        });
+
+        const response = await get(`/posts/limit-admin?${params.toString()}`);
+        return response;
+    } catch (error) {
+        console.log("Error get post limit admin service", error);
+        const errorMessage =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Lấy bài viết admin thất bại";
+        throw new Error(errorMessage);
+    }
+};
+
+export const apiUpdatePost = async (postId, payload) => {
+    try {
+        const response = await put(`/posts/update/${postId}`, payload);
+        return response;
+    } catch (error) {
+        console.log("Error update post service", error);
+        const errorMessage =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Cập nhật bài viết thất bại";
+        throw new Error(errorMessage);
+    }
+};
+
+export const apiDeletePost = async (postId) => {
+    try {
+        const response = await del(`/posts/delete/${postId}`);
+        return response.data;
+    } catch (error) {
+        console.log("Error delete post service", error);
+        const errorMessage =
+            error.response?.data?.message || error.response?.data?.error || error.message || "Xóa bài viết thất bại";
         throw new Error(errorMessage);
     }
 };

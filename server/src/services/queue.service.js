@@ -1,3 +1,4 @@
+// Queue.service.js
 const { Queue } = require("@/models");
 
 class QueueService {
@@ -56,13 +57,33 @@ class QueueService {
     }
 
     async getFailedJobs() {
+        const { Sequelize } = require("sequelize");
+        const MAX_RETRIES = 3; // Phải match với MAX_RETRIES trong queueWorker.js
+
         return await Queue.findAll({
             where: {
                 status: "reject",
-                // Không cần check retries < max_retries vì trong logic mới
-                // ta sẽ reset retries về 0 khi retry
+                // Chỉ lấy những job chưa vượt quá MAX_RETRIES hoặc retries là null
+                [Sequelize.Op.or]: [
+                    { retries: { [Sequelize.Op.lte]: MAX_RETRIES } },
+                    { retries: null },
+                ],
             },
             order: [["createdAt", "ASC"]],
+        });
+    }
+
+    // Lấy những job đã reject vĩnh viễn (vượt quá MAX_RETRIES)
+    async getPermanentlyRejectedJobs() {
+        const { Sequelize } = require("sequelize");
+        const MAX_RETRIES = 3;
+
+        return await Queue.findAll({
+            where: {
+                status: "reject",
+                retries: { [Sequelize.Op.gt]: MAX_RETRIES },
+            },
+            order: [["createdAt", "DESC"]],
         });
     }
 

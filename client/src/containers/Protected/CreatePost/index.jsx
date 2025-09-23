@@ -20,30 +20,29 @@ import {
     clearSearchResults,
 } from "@/features/province/provinceSlice";
 
-const CreatePost = () => {
+const CreatePost = ({ isEdit, dataEdit }) => {
     const dispatch = useDispatch();
     const [upload, setUpload] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false); // Thêm state loading cho submit
     const [resetKey, setResetKey] = useState(0); // Key để force re-render components
     const { prices, categories } = useSelector((state) => state.app);
-    const { provinces } = useSelector((state) => state.provinces);
+    // const { provinces } = useSelector((state) => state.provinces);
     const { areas } = useSelector((state) => state.areas);
     const { profileUser } = useSelector((state) => state.auth);
 
-    // State ban đầu để reset
     const initialPayload = {
-        categoryCode: "",
-        title: "",
-        priceNumber: "",
-        areaNumber: "",
-        images: "",
-        address: "",
-        priceCode: "",
-        areaCode: "",
-        description: "",
-        target: "",
-        province: "",
+        categoryCode: dataEdit?.categoryCode || "",
+        title: dataEdit?.title || "",
+        priceNumber: +dataEdit?.priceNumber * 1000000 || "",
+        areaNumber: dataEdit?.areaNumber || "",
+        images: dataEdit?.images || "",
+        address: dataEdit?.address || "",
+        priceCode: dataEdit?.priceCode || "",
+        areaCode: dataEdit?.areaCode || "",
+        description: dataEdit?.description || "",
+        target: dataEdit?.overviews.target || "",
+        province: dataEdit?.province || "",
     };
 
     const [payload, setPayload] = useState(initialPayload);
@@ -101,6 +100,8 @@ const CreatePost = () => {
             };
         });
     };
+
+    console.log(payload);
 
     // Hàm reset form về trạng thái ban đầu
     const resetForm = () => {
@@ -161,7 +162,7 @@ const CreatePost = () => {
                     title: "Thành công!",
                     text: response.message || "Tạo bài viết thành công",
                     confirmButtonColor: "#FF5723",
-                    timer: 3000,
+                    timer: 2000,
                     timerProgressBar: true,
                 });
 
@@ -192,10 +193,16 @@ const CreatePost = () => {
     };
 
     return (
-        <div className="px-6">
-            <h1 className="text-2xl py-4 border-b border-gray-200">Đăng tin cho thuê</h1>
-            <div className="flex gap-4">
-                <div className="py-4 flex flex-col gap-8 flex-auto">
+        <div className="px-6 flex justify-center">
+            <div className="w-full max-w-4xl">
+                <h1
+                    className={`text-3xl font-bold py-4 border-b border-gray-200
+                  bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent`}
+                >
+                    {isEdit ? "Chỉnh sửa tin đăng" : "Quản lý tin đăng"}
+                </h1>
+
+                <div className="py-4 flex flex-col gap-8">
                     <Address key={`address-${resetKey}`} payload={payload} setPayload={setPayload} />
                     <ThongTinMoTa key={`thongtin-${resetKey}`} payload={payload} setPayload={setPayload} />
                     <div className="font-medium text-xl flex flex-col gap-2">
@@ -273,10 +280,7 @@ const CreatePost = () => {
                         />
                     </div>
                 </div>
-                {/* div bên trái */}
-                <div className="w-[30%]">Mapping</div>
             </div>
-            {/* div */}
         </div>
     );
 };

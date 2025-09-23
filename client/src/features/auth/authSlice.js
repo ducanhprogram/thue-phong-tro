@@ -4,7 +4,7 @@ import { login, register, resetPassword, verifyEmail, resendVerifyEmail, getMe }
 
 const initialState = {
     loginUser: null,
-    profileUser: {},
+    profileUser: null,
     accessToken: null,
     refreshToken: null,
     isAuthenticated: false,
@@ -98,8 +98,7 @@ export const resetUserPassword = createAsyncThunk(
 export const fetchUserProfile = createAsyncThunk("auth/fetchUserProfile", async (_, { rejectWithValue }) => {
     try {
         const response = await getMe();
-        console.log(response);
-        return response.data; // response.data chứa { user }
+        return response.data;
     } catch (error) {
         return rejectWithValue({
             message: error.message,
@@ -116,6 +115,7 @@ const authSlice = createSlice({
             state.error = null;
         },
         logout: (state) => {
+            Object.assign(state, initialState);
             state.loginUser = null;
             state.profileUser = null;
             state.accessToken = null;
@@ -180,6 +180,7 @@ const authSlice = createSlice({
             .addCase(fetchUserProfile.fulfilled, (state, action) => {
                 state.loading = false;
                 state.profileUser = action.payload.user;
+                state.loginUser = action.payload.user;
                 state.isAuthenticated = true;
                 state.isLoggedIn = true;
             })

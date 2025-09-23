@@ -27,7 +27,12 @@ module.exports = (sequelize, DataTypes) => {
             Post.belongsTo(models.Overview, {
                 foreignKey: "overviewId",
                 targetKey: "id",
-                as: "overview",
+                as: "overviews",
+            });
+            Post.belongsTo(models.Province, {
+                foreignKey: "provinceCode",
+                targetKey: "code",
+                as: "province",
             });
         }
     }

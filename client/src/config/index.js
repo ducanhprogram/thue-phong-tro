@@ -15,6 +15,8 @@ const config = {
         homePage: "/",
         dashboard: "/dashboard/*",
         createPost: "tao-tin-dang",
+        ManagePost: "quan-ly-tin-dang",
+        editProfile: "sua-thong-tin-ca-nhan",
         notFound: "*",
     },
 };

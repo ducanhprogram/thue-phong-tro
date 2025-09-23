@@ -30,9 +30,8 @@ class UserService {
                 },
             };
         } catch (error) {
-            throw new Error(
-                `Lỗi khi lấy danh sách người dùng: ${error.message}`
-            );
+            console.error("Error getting all users:", error);
+            throw error;
         }
     }
 
@@ -51,9 +50,8 @@ class UserService {
 
             return user; // Trả về trực tiếp user hoặc null
         } catch (error) {
-            throw new Error(
-                `Lỗi khi lấy thông tin người dùng: ${error.message}`
-            );
+            console.error("Error getting user by id:", error);
+            throw error;
         }
     }
 
@@ -73,9 +71,8 @@ class UserService {
 
             return user; // Trả về trực tiếp user hoặc null
         } catch (error) {
-            throw new Error(
-                `Lỗi khi tìm người dùng theo email: ${error.message}`
-            );
+            console.error("Error finding user by email:", error);
+            throw error;
         }
     }
 
@@ -92,9 +89,8 @@ class UserService {
 
             return user; // Trả về trực tiếp user hoặc null
         } catch (error) {
-            throw new Error(
-                `Lỗi khi tìm người dùng theo số điện thoại: ${error.message}`
-            );
+            console.error("Error finding user by phone:", error);
+            throw error;
         }
     }
 
@@ -110,7 +106,9 @@ class UserService {
                 });
 
                 if (existingUser) {
-                    throw new Error("Email đã được sử dụng");
+                    const error = new Error("Email đã được sử dụng");
+                    error.statusCode = 409;
+                    throw error;
                 }
             }
 
@@ -126,12 +124,25 @@ class UserService {
 
             return userWithoutPassword; // Trả về user object
         } catch (error) {
+            console.error("Error creating user:", error);
+
             if (error.name === "SequelizeValidationError") {
                 const validationErrors = error.errors.map((err) => err.message);
-                throw new Error(
+                const validationError = new Error(
                     `Dữ liệu không hợp lệ: ${validationErrors.join(", ")}`
                 );
+                validationError.statusCode = 400;
+                throw validationError;
             }
+
+            if (error.name === "SequelizeUniqueConstraintError") {
+                const uniqueError = new Error(
+                    "Dữ liệu đã tồn tại trong hệ thống"
+                );
+                uniqueError.statusCode = 409;
+                throw uniqueError;
+            }
+
             throw error;
         }
     }
@@ -144,7 +155,9 @@ class UserService {
             const user = await User.findByPk(id);
 
             if (!user) {
-                return null; // Trả về null nếu không tìm thấy
+                const error = new Error("Người dùng không tồn tại");
+                error.statusCode = 404;
+                throw error;
             }
 
             // Kiểm tra email đã tồn tại (nếu đang cập nhật email)
@@ -157,9 +170,11 @@ class UserService {
                 });
 
                 if (existingUser) {
-                    throw new Error(
-                        "Email đã được sử dụng bạn vui lòng kiểm tra lại."
+                    const error = new Error(
+                        "Email đã được sử dụng bởi tài khoản khác"
                     );
+                    error.statusCode = 409;
+                    throw error;
                 }
             }
 
@@ -178,12 +193,129 @@ class UserService {
 
             return updatedUser; // Trả về user object
         } catch (error) {
+            console.error("Error updating user:", error);
+
             if (error.name === "SequelizeValidationError") {
                 const validationErrors = error.errors.map((err) => err.message);
-                throw new Error(
+                const validationError = new Error(
                     `Dữ liệu không hợp lệ: ${validationErrors.join(", ")}`
                 );
+                validationError.statusCode = 400;
+                throw validationError;
             }
+
+            if (error.name === "SequelizeUniqueConstraintError") {
+                const uniqueError = new Error(
+                    "Dữ liệu đã tồn tại trong hệ thống"
+                );
+                uniqueError.statusCode = 409;
+                throw uniqueError;
+            }
+
+            throw error;
+        }
+    }
+
+    /**
+     * Cập nhật profile user (chỉ các trường được phép)
+     */
+    async updateProfile(id, updateData) {
+        try {
+            const user = await User.findByPk(id);
+
+            if (!user) {
+                const error = new Error("Người dùng không tồn tại");
+                error.statusCode = 404;
+                throw error;
+            }
+
+            // Kiểm tra phone đã tồn tại (nếu đang cập nhật phone)
+            if (updateData.phone && updateData.phone !== user.phone) {
+                const existingUser = await User.findOne({
+                    where: {
+                        phone: updateData.phone,
+                        id: { [require("sequelize").Op.ne]: id },
+                    },
+                });
+
+                if (existingUser) {
+                    const error = new Error(
+                        "Số điện thoại đã được sử dụng bởi tài khoản khác"
+                    );
+                    error.statusCode = 409;
+                    throw error;
+                }
+            }
+
+            // Chỉ cho phép cập nhật các trường profile
+            const allowedFields = [
+                "name",
+                "phone",
+                "zalo",
+                "facebook_url",
+                "avatar",
+            ];
+            const filteredData = {};
+
+            Object.keys(updateData).forEach((key) => {
+                if (allowedFields.includes(key)) {
+                    filteredData[key] = updateData[key];
+                }
+            });
+
+            // Validate dữ liệu
+            if (filteredData.name && filteredData.name.trim().length === 0) {
+                const error = new Error("Tên không được để trống");
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (filteredData.phone) {
+                const phoneRegex = /^[0-9]{10,11}$/;
+                if (!phoneRegex.test(filteredData.phone)) {
+                    const error = new Error(
+                        "Số điện thoại không đúng định dạng (10-11 chữ số)"
+                    );
+                    error.statusCode = 400;
+                    throw error;
+                }
+            }
+
+            if (filteredData.name && filteredData.name.length > 50) {
+                const error = new Error("Tên không được vượt quá 50 ký tự");
+                error.statusCode = 400;
+                throw error;
+            }
+
+            // Cập nhật user
+            await user.update(filteredData);
+
+            // Lấy user đã cập nhật (loại bỏ password)
+            const updatedUser = await User.findByPk(id, {
+                attributes: { exclude: ["password"] },
+            });
+
+            return updatedUser;
+        } catch (error) {
+            console.error("Error updating user profile:", error);
+
+            if (error.name === "SequelizeValidationError") {
+                const validationErrors = error.errors.map((err) => err.message);
+                const validationError = new Error(
+                    `Dữ liệu không hợp lệ: ${validationErrors.join(", ")}`
+                );
+                validationError.statusCode = 400;
+                throw validationError;
+            }
+
+            if (error.name === "SequelizeUniqueConstraintError") {
+                const uniqueError = new Error(
+                    "Dữ liệu đã tồn tại trong hệ thống"
+                );
+                uniqueError.statusCode = 409;
+                throw uniqueError;
+            }
+
             throw error;
         }
     }
@@ -196,13 +328,16 @@ class UserService {
             const user = await User.findByPk(id);
 
             if (!user) {
-                return false; // Trả về false nếu không tìm thấy
+                const error = new Error("Người dùng không tồn tại");
+                error.statusCode = 404;
+                throw error;
             }
 
             await user.destroy();
-            return true; // Trả về true nếu xóa thành công
+            return { success: true, message: "Xóa người dùng thành công" };
         } catch (error) {
-            throw new Error(`Lỗi khi xóa người dùng: ${error.message}`);
+            console.error("Error removing user:", error);
+            throw error;
         }
     }
 
@@ -213,7 +348,10 @@ class UserService {
         try {
             return await comparePassword(plainPassword, hashedPassword);
         } catch (error) {
-            throw new Error(`Lỗi khi xác thực password: ${error.message}`);
+            console.error("Error verifying password:", error);
+            const verifyError = new Error("Lỗi khi xác thực mật khẩu");
+            verifyError.statusCode = 500;
+            throw verifyError;
         }
     }
 
@@ -221,25 +359,42 @@ class UserService {
      * Cập nhật trạng thái xác thực email
      */
     async verifyEmail(userId) {
-        const user = await User.findByPk(userId);
-        console.log("user service", user);
-        if (!user) {
-            return false;
-        }
-        const [updated] = await User.update(
-            {
-                email_verified: true,
-                email_verified_at: new Date(),
-                updated_at: new Date(),
-            },
-            {
-                where: { id: userId },
+        try {
+            const user = await User.findByPk(userId);
+            console.log("user service", user);
+
+            if (!user) {
+                const error = new Error("Người dùng không tồn tại");
+                error.statusCode = 404;
+                throw error;
             }
-        );
 
-        console.log("Updated", updated);
+            const [updated] = await User.update(
+                {
+                    email_verified: true,
+                    email_verified_at: new Date(),
+                    updated_at: new Date(),
+                },
+                {
+                    where: { id: userId },
+                }
+            );
 
-        return updated > 0;
+            console.log("Updated", updated);
+
+            if (updated === 0) {
+                const error = new Error(
+                    "Không thể cập nhật trạng thái xác thực email"
+                );
+                error.statusCode = 500;
+                throw error;
+            }
+
+            return updated > 0;
+        } catch (error) {
+            console.error("Error verifying email:", error);
+            throw error;
+        }
     }
 }
 

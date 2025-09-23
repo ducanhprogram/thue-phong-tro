@@ -79,6 +79,12 @@ module.exports = {
             },
             provinceCode: {
                 type: Sequelize.STRING,
+                references: {
+                    model: "provinces",
+                    key: "code",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
             priceNumber: {
                 type: Sequelize.FLOAT,
