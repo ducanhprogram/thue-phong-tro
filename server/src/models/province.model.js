@@ -24,6 +24,12 @@ module.exports = (sequelize, DataTypes) => {
         {
             sequelize,
             modelName: "Province",
+            tableName: "provinces",
+            timestamps: true,
+            createdAt: "createdAt",
+            updatedAt: "updatedAt",
+            charset: "utf8",
+            collate: "utf8_general_ci",
         }
     );
     return Province;

@@ -37,13 +37,33 @@ module.exports = {
             },
             priceCode: {
                 type: Sequelize.STRING,
+                allowNull: true,
+                references: {
+                    model: "prices",
+                    key: "code",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
             areaCode: {
                 type: Sequelize.STRING,
+                allowNull: true,
+                references: {
+                    model: "areas",
+                    key: "code",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
             categoryCode: {
                 type: Sequelize.STRING,
                 allowNull: false,
+                references: {
+                    model: "categories",
+                    key: "code",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "RESTRICT",
             },
             description: {
                 type: Sequelize.TEXT,

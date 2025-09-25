@@ -19,7 +19,6 @@ const Header = () => {
     const [isShowMenu, setIsShowMenu] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-
     // Ref để tham chiếu đến dropdown menu
     const dropdownRef = useRef(null);
 
@@ -71,6 +70,9 @@ const Header = () => {
         }
     }, [dispatch, navigate]);
 
+    const handleDangTin = () => {
+        navigate(`/dashboard/tao-tin-dang`);
+    };
     const toggleMenu = useCallback(() => {
         setIsShowMenu((prev) => !prev);
     }, []);
@@ -172,6 +174,7 @@ const Header = () => {
                         textColor="text-white"
                         bgColor="bg-secondary2"
                         isIcons={CiCirclePlus}
+                        onClick={handleDangTin}
                     />
                 </div>
             </div>

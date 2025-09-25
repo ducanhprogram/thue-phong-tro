@@ -20,7 +20,7 @@ import {
     clearSearchResults,
 } from "@/features/province/provinceSlice";
 
-const CreatePost = ({ isEdit, dataEdit }) => {
+const CreatePost = ({ dataEdit }) => {
     const dispatch = useDispatch();
     const [upload, setUpload] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -199,7 +199,7 @@ const CreatePost = ({ isEdit, dataEdit }) => {
                     className={`text-3xl font-bold py-4 border-b border-gray-200
                   bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent`}
                 >
-                    {isEdit ? "Chỉnh sửa tin đăng" : "Quản lý tin đăng"}
+                    Tạo tin đăng
                 </h1>
 
                 <div className="py-4 flex flex-col gap-8">

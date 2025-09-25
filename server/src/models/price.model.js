@@ -8,8 +8,11 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            // define association here
-            //   Price.hasMany(models.Post, { foreignKey: 'userId', as: 'user' })
+            Price.hasMany(models.Post, {
+                foreignKey: "priceCode",
+                sourceKey: "code",
+                as: "posts",
+            });
         }
     }
     Price.init(
@@ -20,13 +23,23 @@ module.exports = (sequelize, DataTypes) => {
                 autoIncrement: true,
                 allowNull: false,
             },
-            code: DataTypes.STRING,
+            code: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                unique: true,
+            },
             value: DataTypes.STRING,
             order: DataTypes.INTEGER,
         },
         {
             sequelize,
             modelName: "Price",
+            tableName: "prices",
+            timestamps: true,
+            createdAt: "createdAt",
+            updatedAt: "updatedAt",
+            charset: "utf8",
+            collate: "utf8_general_ci",
         }
     );
     return Price;

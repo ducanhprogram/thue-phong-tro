@@ -8,8 +8,11 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            // define association here
-            //   Price.hasMany(models.Post, { foreignKey: 'userId', as: 'user' })
+            Area.hasMany(models.Post, {
+                foreignKey: "areaCode",
+                sourceKey: "code",
+                as: "posts",
+            });
         }
     }
     Area.init(
@@ -20,7 +23,11 @@ module.exports = (sequelize, DataTypes) => {
                 autoIncrement: true,
                 allowNull: false,
             },
-            code: DataTypes.STRING,
+            code: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                unique: true,
+            },
             value: DataTypes.STRING,
             order: DataTypes.INTEGER,
         },
